@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CloseIcon } from './Icons';
+import { CloseIcon, DeleteIcon } from './Icons';
 import { useAuth } from '../contexts/useAuth';
 import { DriveService } from '../services/driveService';
 
@@ -9,6 +9,7 @@ interface HistoryItem {
   webViewLink: string;
   title: string;
   timestamp: string;
+  isDeleting?: boolean;
 }
 
 interface HistoryDrawerProps {
@@ -42,7 +43,7 @@ const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose }) => {
       } catch (error: any) {
         console.error('Failed to fetch history:', error);
         if (error.message.includes('401') || error.message.includes('invalid authentication')) {
-            alert("Your session has expired. Please log out and log in again.");
+          alert("Your session has expired. Please log out and log in again.");
         }
       } finally {
         setLoading(false);
@@ -51,6 +52,24 @@ const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose }) => {
 
     fetchHistory();
   }, [isOpen, token]);
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!token?.access_token) return;
+
+    setHistory(prev => prev.map(item => item.id === id ? { ...item, isDeleting: true } : item));
+
+    try {
+      await DriveService.deleteFile(id, token.access_token);
+      setHistory(prev => prev.filter(item => item.id !== id));
+    } catch (error) {
+      console.error('Failed to delete file:', error);
+      alert('Failed to delete the file. Please try again.');
+      setHistory(prev => prev.map(item => item.id === id ? { ...item, isDeleting: false } : item));
+    }
+  };
 
   return (
     <>
@@ -96,7 +115,7 @@ const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose }) => {
                   href={item.webViewLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-indigo-50 dark:hover:bg-gray-800 border border-transparent hover:border-indigo-100 dark:hover:border-gray-700 cursor-pointer transition-all duration-200"
+                  className={`group relative flex flex-col gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-indigo-50 dark:hover:bg-gray-800 border border-transparent hover:border-indigo-100 dark:hover:border-gray-700 cursor-pointer transition-all duration-200 ${item.isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   {/* Thumbnail */}
                   <div className="w-full aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-gray-700">
@@ -114,15 +133,30 @@ const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose }) => {
                     )}
                   </div>
 
-                  {/* Info */}
-                  <div className="flex flex-col px-1">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
-                      {item.title}
-                    </h3>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-indigo-400 transition-colors"></span>
-                      {item.timestamp}
-                    </span>
+                  {/* Info Row */}
+                  <div className="flex items-start justify-between gap-2 px-1">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
+                        {item.title}
+                      </h3>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-indigo-400 transition-colors"></span>
+                        {item.timestamp}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={(e) => handleDelete(e, item.id)}
+                      disabled={item.isDeleting}
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                      title="Delete from history"
+                    >
+                      {item.isDeleting ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <DeleteIcon className="w-4 h-4" />
+                      )}
+                    </button>
                   </div>
                 </a>
               ))}
