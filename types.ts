@@ -36,7 +36,4 @@ export interface AppState {
   // Branding state
   brandings: Branding[];
   selectedBrandingId: string;
-  isBrandingModalOpen: boolean;
-  isBrandingFormOpen: boolean;
-  editingBranding: Branding | null;
 }
