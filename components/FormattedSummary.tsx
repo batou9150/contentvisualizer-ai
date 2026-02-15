@@ -5,8 +5,7 @@ interface FormattedSummaryProps {
 }
 
 const FormattedSummary: React.FC<FormattedSummaryProps> = ({ text }) => {
-  const lines = text.split('
-');
+  const lines = text.split('\n');
   const elements: React.ReactNode[] = [];
 
   const parseInline = (content: string) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppState, Branding } from '../types';
 import { GeminiService } from '../services/geminiService';
 import { INITIAL_BRANDINGS, DEFAULT_BRANDING } from '../constants';
