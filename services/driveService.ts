@@ -103,4 +103,20 @@ export class DriveService {
     const data = await response.json();
     return data.files || [];
   }
+
+  static async deleteFile(fileId: string, accessToken: string) {
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`Drive deleteFile failed: ${error.error?.message || response.statusText}`);
+    }
+
+    return true;
+  }
 }
