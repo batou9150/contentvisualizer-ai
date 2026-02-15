@@ -8,6 +8,10 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       host: '0.0.0.0',
+      proxy: {
+        '/auth': 'http://localhost:3000',
+        '/api-proxy': 'http://localhost:3000'
+      }
     },
     plugins: [react()],
     define: {
