@@ -4,6 +4,8 @@
 
 Whether you're researching a topic, summarizing a long article, or needing a quick visual for a presentation, this tool streamlines the process by generating executive summaries, structured mindmaps, and high-quality, branded slide visuals.
 
+![Content Visualizer AI](docs/contentvisualizer-ai.jpg)
+
 ## 🚀 Features
 
 - **Multi-Modal Analysis:**
@@ -83,3 +85,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+## Screenshots
+
+![Screenshot CHIBI](docs/screenshot_chibi.png)
