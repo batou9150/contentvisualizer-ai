@@ -20,10 +20,12 @@ const BrandingManager: React.FC<BrandingManagerProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBranding, setEditingBranding] = useState<Branding | null>(null);
   const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
+  
+  // Controlled inputs
+  const [name, setName] = useState('');
+  const [prompt, setPrompt] = useState('');
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const promptTextAreaRef = useRef<HTMLTextAreaElement>(null);
-  const brandingNameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -35,15 +37,20 @@ const BrandingManager: React.FC<BrandingManagerProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isModalOpen) {
+      setName(editingBranding?.name || '');
+      setPrompt(editingBranding?.prompt || '');
+    }
+  }, [isModalOpen, editingBranding]);
+
   const getSelectedBranding = () => {
     return brandings.find(b => b.id === selectedId) || brandings[0];
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
-    const name = formData.get('name') as string;
-    const prompt = formData.get('prompt') as string;
 
     if (editingBranding) {
       const updated = brandings.map(b => b.id === editingBranding.id ? { ...b, name, prompt } : b);
@@ -71,17 +78,12 @@ const BrandingManager: React.FC<BrandingManagerProps> = ({
   };
 
   const handleImprovePrompt = async () => {
-    const nameVal = brandingNameRef.current?.value || "";
-    const promptVal = promptTextAreaRef.current?.value || "";
-
-    if (!nameVal.trim() && !promptVal.trim()) return;
+    if (!name.trim() && !prompt.trim()) return;
 
     setIsImprovingPrompt(true);
     try {
-      const improved = await GeminiService.improveVisualPrompt(promptVal, nameVal);
-      if (promptTextAreaRef.current) {
-        promptTextAreaRef.current.value = improved;
-      }
+      const improved = await GeminiService.improveVisualPrompt(prompt, name);
+      setPrompt(improved);
     } catch (err) {
       console.error("Failed to improve prompt:", err);
     } finally {
@@ -168,8 +170,8 @@ const BrandingManager: React.FC<BrandingManagerProps> = ({
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Branding Name</label>
                 <input
                   name="name"
-                  ref={brandingNameRef}
-                  defaultValue={editingBranding?.name}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   required
                   placeholder="e.g., Corporate Dark, Modern Glass"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-white bg-white dark:bg-[#334155] placeholder:text-gray-400"
@@ -199,8 +201,8 @@ const BrandingManager: React.FC<BrandingManagerProps> = ({
                 </div>
                 <textarea
                   name="prompt"
-                  ref={promptTextAreaRef}
-                  defaultValue={editingBranding?.prompt}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
                   required
                   rows={6}
                   placeholder="Describe the aesthetic, colors, and layout..."
