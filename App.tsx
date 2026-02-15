@@ -1,14 +1,14 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { AppState, ImageSize, InputMode, Branding } from './types';
+import React, { useState, useEffect } from 'react';
+import { AppState, ImageSize } from './types';
 import { GeminiService } from './services/geminiService';
 import MermaidRenderer from './components/MermaidRenderer';
 import BrandingManager from './components/BrandingManager';
 import { INITIAL_BRANDINGS, DEFAULT_BRANDING } from './constants';
-import { 
-  LightningIcon, 
-  ImageIcon, 
-  EmptyStateIcon 
+import {
+  LightningIcon,
+  ImageIcon,
+  EmptyStateIcon
 } from './components/Icons';
 
 const FormattedSummary: React.FC<{ text: string }> = ({ text }) => {
