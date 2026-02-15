@@ -10,6 +10,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<any | null>(null);
 
+    useEffect(() => {
+        console.log('Auth Token Updated:', token);
+        if (typeof token === 'string') {
+            console.warn('Auth Token is a string (legacy/credential flow). Access to Google Drive API may be limited.');
+        } else if (token && !token.access_token) {
+            console.warn('Auth Token object is missing access_token.');
+        }
+    }, [token]);
+
     // Initialize user from localStorage on mount
     useEffect(() => {
         try {

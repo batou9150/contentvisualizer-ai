@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import BrandingManager from './BrandingManager';
+import HistoryDrawer from './HistoryDrawer';
+import { HistoryIcon } from './Icons';
 import { Branding, ImageSize } from '../types';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/useAuth';
@@ -24,6 +26,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const { user, login, logout } = useAuth();
   const [showLogout, setShowLogout] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,6 +89,14 @@ const Header: React.FC<HeaderProps> = ({
               ))}
             </div>
 
+            <button
+              onClick={() => setShowHistory(true)}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              title="History"
+            >
+              <HistoryIcon className="w-5 h-5" />
+            </button>
+
             <div className="relative" ref={dropdownRef}>
               {user.picture && (
                 <button
@@ -116,6 +127,7 @@ const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
         )}
+        <HistoryDrawer isOpen={showHistory} onClose={() => setShowHistory(false)} />
       </div>
     </header>
   );

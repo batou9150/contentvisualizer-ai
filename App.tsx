@@ -92,6 +92,7 @@ const App: React.FC = () => {
               <ExecutiveSummary
                 data={state.data}
                 summaryImageUrl={state.summaryImageUrl}
+                summaryDriveUrl={state.summaryDriveUrl}
                 isGeneratingSummaryImage={state.isGeneratingSummaryImage}
                 onGenerateImage={handleGenerateSummaryImage}
               />
@@ -99,6 +100,7 @@ const App: React.FC = () => {
               <MindmapVisualizer
                 data={state.data}
                 mindmapImageUrl={state.mindmapImageUrl}
+                mindmapDriveUrl={state.mindmapDriveUrl}
                 isGeneratingMindmapImage={state.isGeneratingMindmapImage}
                 onGenerateImage={handleGenerateMindmapImage}
                 showRawMermaid={state.showRawMermaid}

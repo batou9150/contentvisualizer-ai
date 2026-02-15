@@ -29,6 +29,8 @@ export interface AppState {
   data: ProcessedData | null;
   summaryImageUrl: string | null;
   mindmapImageUrl: string | null;
+  summaryDriveUrl: string | null;
+  mindmapDriveUrl: string | null;
   isGeneratingSummaryImage: boolean;
   isGeneratingMindmapImage: boolean;
   imageSize: ImageSize;
