@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { AppState, Branding } from '../types';
 import { GeminiService } from '../services/geminiService';
+import { DriveService } from '../services/driveService';
 import { INITIAL_BRANDINGS, DEFAULT_BRANDING } from '../constants';
+import { useAuth } from '../contexts/useAuth';
 
 export const useContentAnalysis = () => {
+  const { token } = useAuth();
+
+  useEffect(() => {
+    console.log('Current Auth Token:', token);
+  }, [token]);
+
   const [state, setState] = useState<AppState>(() => {
     const savedBrandings = localStorage.getItem('brandings');
     const savedSelectedId = localStorage.getItem('selectedBrandingId');
@@ -83,13 +91,40 @@ export const useContentAnalysis = () => {
     }
   };
 
+  const uploadToDrive = async (base64Data: string, fileName: string) => {
+    console.log('Attempting to upload to Drive:', fileName);
+    if (!token?.access_token) {
+      console.warn('No access token available for Drive upload.');
+      return null;
+    }
+    try {
+      const folderId = await DriveService.findOrCreateFolder('Content Visualizer AI', token.access_token);
+      console.log('Folder ID:', folderId);
+      const fileData = await DriveService.uploadImage(base64Data, fileName, token.access_token, folderId);
+      console.log(`Uploaded ${fileName} to Google Drive. Response:`, fileData);
+      return fileData.webViewLink;
+    } catch (err) {
+      console.error('Failed to upload to Google Drive:', err);
+      return null;
+    }
+  };
+
   const handleGenerateMindmapImage = async () => {
     if (!state.data) return;
     try {
-      setState(prev => ({ ...prev, isGeneratingMindmapImage: true, error: null }));
+      setState(prev => ({ ...prev, isGeneratingMindmapImage: true, error: null, mindmapDriveUrl: null }));
       const branding = getSelectedBranding();
       const imageUrl = await GeminiService.generateInfographic(state.data.mermaidCode, state.imageSize, branding.prompt);
-      setState(prev => ({ ...prev, mindmapImageUrl: imageUrl, isGeneratingMindmapImage: false }));
+
+      const driveUrl = await uploadToDrive(imageUrl, `Mindmap_${Date.now()}.png`);
+      console.log('Mindmap Drive URL:', driveUrl);
+
+      setState(prev => ({
+        ...prev,
+        mindmapImageUrl: imageUrl,
+        mindmapDriveUrl: driveUrl,
+        isGeneratingMindmapImage: false
+      }));
     } catch (err: any) {
       console.error(err);
       setState(prev => ({ ...prev, error: "Image generation failed.", isGeneratingMindmapImage: false }));
@@ -99,10 +134,19 @@ export const useContentAnalysis = () => {
   const handleGenerateSummaryImage = async () => {
     if (!state.data) return;
     try {
-      setState(prev => ({ ...prev, isGeneratingSummaryImage: true, error: null }));
+      setState(prev => ({ ...prev, isGeneratingSummaryImage: true, error: null, summaryDriveUrl: null }));
       const branding = getSelectedBranding();
       const imageUrl = await GeminiService.generateDirectInfographic(state.data.summary, state.imageSize, branding.prompt);
-      setState(prev => ({ ...prev, summaryImageUrl: imageUrl, isGeneratingSummaryImage: false }));
+
+      const driveUrl = await uploadToDrive(imageUrl, `Summary_${Date.now()}.png`);
+      console.log('Summary Drive URL:', driveUrl);
+
+      setState(prev => ({
+        ...prev,
+        summaryImageUrl: imageUrl,
+        summaryDriveUrl: driveUrl,
+        isGeneratingSummaryImage: false
+      }));
     } catch (err: any) {
       console.error(err);
       setState(prev => ({ ...prev, error: "Image generation failed.", isGeneratingSummaryImage: false }));
@@ -118,3 +162,4 @@ export const useContentAnalysis = () => {
     handleGenerateSummaryImage
   };
 };
+

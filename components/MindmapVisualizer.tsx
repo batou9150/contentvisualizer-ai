@@ -7,6 +7,7 @@ import { ProcessedData } from '../types';
 interface MindmapVisualizerProps {
   data: ProcessedData;
   mindmapImageUrl: string | null;
+  mindmapDriveUrl: string | null;
   isGeneratingMindmapImage: boolean;
   onGenerateImage: () => void;
   showRawMermaid: boolean;
@@ -16,6 +17,7 @@ interface MindmapVisualizerProps {
 const MindmapVisualizer: React.FC<MindmapVisualizerProps> = ({
   data,
   mindmapImageUrl,
+  mindmapDriveUrl,
   isGeneratingMindmapImage,
   onGenerateImage,
   showRawMermaid,
@@ -47,7 +49,7 @@ const MindmapVisualizer: React.FC<MindmapVisualizerProps> = ({
       ) : (
         <MermaidRenderer chart={data.mermaidCode} />
       )}
-      <VisualResult url={mindmapImageUrl} />
+      <VisualResult url={mindmapImageUrl} driveUrl={mindmapDriveUrl} />
     </section>
   );
 };
