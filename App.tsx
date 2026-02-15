@@ -3,6 +3,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AppState, ImageSize, InputMode, Branding } from './types';
 import { GeminiService } from './services/geminiService';
 import MermaidRenderer from './components/MermaidRenderer';
+import { 
+  EditIcon, 
+  DeleteIcon, 
+  PlusIcon, 
+  PenIcon, 
+  StarIcon, 
+  LightningIcon, 
+  ImageIcon, 
+  EmptyStateIcon 
+} from './components/Icons';
 
 const DEFAULT_BRANDING: Branding = {
   id: 'default',
@@ -365,14 +375,14 @@ const App: React.FC = () => {
                             onClick={(e) => { e.stopPropagation(); setState(prev => ({ ...prev, editingBranding: b, isBrandingFormOpen: true })); setIsDropdownOpen(false); }}
                             className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-gray-700 rounded-lg"
                           >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <EditIcon className="w-4 h-4" />
                           </button>
                           {state.brandings.length > 1 && (
                             <button
                               onClick={(e) => { e.stopPropagation(); deleteBranding(b.id); }}
                               className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white dark:hover:bg-gray-700 rounded-lg"
                             >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              <DeleteIcon className="w-4 h-4" />
                             </button>
                           )}
                         </div>
@@ -384,7 +394,7 @@ const App: React.FC = () => {
                       onClick={() => { setState(prev => ({ ...prev, isBrandingFormOpen: true, editingBranding: null })); setIsDropdownOpen(false); }}
                       className="w-full py-2.5 px-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl text-slate-600 dark:text-slate-300 font-bold text-xs hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all flex items-center justify-center gap-2"
                     >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                      <PlusIcon className="w-3.5 h-3.5" />
                       New branding
                     </button>
                   </div>
@@ -434,13 +444,9 @@ const App: React.FC = () => {
                       <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <div className="relative w-4 h-4">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                        </svg>
+                        <PenIcon className="w-4 h-4" />
                         <div className="absolute top-1/2 -translate-y-2 -left-1">
-                          <svg className="w-2.5 h-2.5 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
-                          </svg>
+                          <StarIcon className="w-2.5 h-2.5 text-indigo-500" />
                         </div>
                       </div>
                     )}
@@ -501,7 +507,7 @@ const App: React.FC = () => {
                     required
                   />
                   <button disabled={state.loading} type="submit" className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all min-w-[52px] h-[52px] flex items-center justify-center shadow-[0_4px_20px_rgba(79,70,229,0.5)]">
-                    {state.loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+                    {state.loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <LightningIcon className="w-6 h-6" />}
                   </button>
                 </div>
               ) : state.inputMode === 'text' ? (
@@ -516,7 +522,7 @@ const App: React.FC = () => {
                   />
                   <div className="flex justify-end gap-3">
                     <button disabled={state.loading} type="submit" className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center gap-2 shadow-[0_4px_20px_rgba(79,70,229,0.5)]">
-                      {state.loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>Analyze Text</>}
+                      {state.loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><LightningIcon className="w-5 h-5" />Analyze Text</>}
                     </button>
                   </div>
                 </>
@@ -531,7 +537,7 @@ const App: React.FC = () => {
                       </div>
                     ) : (
                       <div className="flex flex-col items-center py-4">
-                        <svg className="w-12 h-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
+                        <ImageIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mb-3" strokeWidth={1} />
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Select an image to analyze</p>
                         <p className="text-xs text-gray-400 mt-1">PNG, JPG or WebP</p>
                       </div>
@@ -539,7 +545,7 @@ const App: React.FC = () => {
                   </div>
                   <div className="flex justify-end gap-3">
                     <button disabled={state.loading || !state.imageData} type="submit" className="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center gap-2 shadow-[0_4px_20px_rgba(79,70,229,0.5)]">
-                      {state.loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>Analyze Image</>}
+                      {state.loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><LightningIcon className="w-5 h-5" />Analyze Image</>}
                     </button>
                   </div>
                 </div>
@@ -563,7 +569,7 @@ const App: React.FC = () => {
                   disabled={state.isGeneratingSummaryImage}
                   className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
                 >
-                  {state.isGeneratingSummaryImage ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>}
+                  {state.isGeneratingSummaryImage ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />}
                   Generate Slide Visual
                 </button>
               </div>
@@ -592,7 +598,7 @@ const App: React.FC = () => {
                     disabled={state.isGeneratingMindmapImage}
                     className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 dark:hover:text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 shadow-sm"
                   >
-                    {state.isGeneratingMindmapImage ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>}
+                    {state.isGeneratingMindmapImage ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />}
                     Generate Slide Visual
                   </button>
                 </div>
@@ -609,7 +615,7 @@ const App: React.FC = () => {
 
         {!state.data && !state.loading && (
           <div className="h-64 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 space-y-4 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-white/50 dark:bg-gray-800/30">
-            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            <EmptyStateIcon className="w-12 h-12" />
             <p className="text-sm font-medium">Analyze content to start visualizing</p>
           </div>
         )}
