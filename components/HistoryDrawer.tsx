@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CloseIcon, DeleteIcon } from './Icons';
 import { useAuth } from '../contexts/useAuth';
 import { DriveService } from '../services/driveService';
+import { DRIVE_FOLDER_NAME } from '../constants';
 
 interface HistoryItem {
   id: string;
@@ -28,7 +29,7 @@ const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose }) => {
 
       setLoading(true);
       try {
-        const folderId = await DriveService.findOrCreateFolder('Content Visualizer AI', token.access_token);
+        const folderId = await DriveService.findOrCreateFolder(DRIVE_FOLDER_NAME, token.access_token);
         const files = await DriveService.listFiles(folderId, token.access_token);
 
         const items: HistoryItem[] = files.map((file: any) => ({

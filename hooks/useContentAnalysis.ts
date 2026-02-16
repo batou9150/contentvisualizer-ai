@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AppState, Branding } from '../types';
 import { GeminiService } from '../services/geminiService';
 import { DriveService } from '../services/driveService';
-import { INITIAL_BRANDINGS, DEFAULT_BRANDING } from '../constants';
+import { INITIAL_BRANDINGS, DEFAULT_BRANDING, DRIVE_FOLDER_NAME } from '../constants';
 import { useAuth } from '../contexts/useAuth';
 
 export const useContentAnalysis = () => {
@@ -99,7 +99,7 @@ export const useContentAnalysis = () => {
       return null;
     }
     try {
-      const folderId = await DriveService.findOrCreateFolder('Content Visualizer AI', token.access_token);
+      const folderId = await DriveService.findOrCreateFolder(DRIVE_FOLDER_NAME, token.access_token);
       console.log('Folder ID:', folderId);
       const fileData = await DriveService.uploadImage(base64Data, fileName, token.access_token, folderId);
       console.log(`Uploaded ${fileName} to Google Drive. Response:`, fileData);
