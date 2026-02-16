@@ -101,6 +101,25 @@ app.post('/auth/google', async (req, res) => {
     }
 });
 
+app.post('/auth/google/refresh', async (req, res) => {
+    const { refresh_token } = req.body;
+    if (!refresh_token) {
+        return res.status(400).json({ error: 'Refresh token is required' });
+    }
+
+    try {
+        console.log('Refreshing access token...');
+        oAuth2Client.setCredentials({ refresh_token });
+        const { credentials } = await oAuth2Client.refreshAccessToken();
+        
+        console.log('Token refresh successful');
+        res.json(credentials);
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        res.status(500).json({ error: 'Token refresh failed', details: error.message });
+    }
+});
+
 // Proxy route for Gemini API calls (HTTP)
 app.use('/api-proxy', async (req, res, next) => {
     console.log(req.ip);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode, useCallback } from 'react';
 import { GoogleCredentialResponse, googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import { AuthContext, User } from './useAuth';
@@ -96,7 +96,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const logout = () => {
+    const logout = useCallback(() => {
         googleLogout();
         setUser(null);
         setToken(null);
@@ -108,10 +108,55 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (error) {
             console.error('Failed to remove user from localStorage:', error);
         }
+    }, []);
+
+    const refreshToken = async () => {
+        if (!token || typeof token === 'string' || !token.refresh_token) {
+            console.warn('Cannot refresh token: No refresh token available.');
+            return null;
+        }
+
+        console.log('Refreshing access token...');
+        try {
+            const res = await fetch('/auth/google/refresh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refresh_token: token.refresh_token }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                console.error('Failed to refresh token:', errorData);
+                // If refresh fails (e.g. revoked), logout user
+                if (res.status === 400 || res.status === 401) {
+                   logout();
+                }
+                throw new Error('Failed to refresh token');
+            }
+
+            const newCredentials = await res.json();
+            
+            // Merge with existing token to keep refresh_token if not returned
+            const updatedToken = {
+                ...token,
+                ...newCredentials,
+            };
+
+            setToken(updatedToken);
+            localStorage.setItem(TOKEN_KEY, JSON.stringify(updatedToken));
+            console.log('Token refreshed successfully.');
+            return updatedToken.access_token;
+
+        } catch (error) {
+            console.error('Error during token refresh:', error);
+            return null;
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ user, token, login, logout, refreshToken }}>
             {children}
         </AuthContext.Provider>
     );
