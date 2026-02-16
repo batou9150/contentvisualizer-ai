@@ -12,6 +12,7 @@ export interface AuthContextType {
     token: any | null;
     login: (response: any) => void;
     logout: () => void;
+    refreshToken: () => Promise<string | null>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);

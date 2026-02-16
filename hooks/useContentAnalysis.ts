@@ -6,7 +6,7 @@ import { INITIAL_BRANDINGS, DEFAULT_BRANDING, DRIVE_FOLDER_NAME } from '../const
 import { useAuth } from '../contexts/useAuth';
 
 export const useContentAnalysis = () => {
-  const { token } = useAuth();
+  const { token, refreshToken } = useAuth();
 
   useEffect(() => {
     console.log('Current Auth Token:', token);
@@ -94,14 +94,42 @@ export const useContentAnalysis = () => {
 
   const uploadToDrive = async (base64Data: string, fileName: string) => {
     console.log('Attempting to upload to Drive:', fileName);
-    if (!token?.access_token) {
-      console.warn('No access token available for Drive upload.');
-      return null;
+    
+    if (!token) {
+        console.warn('No auth token available.');
+        return null;
     }
+
+    let currentToken = token.access_token || (typeof token === 'string' ? token : null);
+    
+    if (!currentToken) {
+         console.warn('No access token available for Drive upload.');
+         return null;
+    }
+
+    const runWithRetry = async (fn: (t: string) => Promise<any>) => {
+          try {
+              return await fn(currentToken);
+          } catch (error: any) {
+              if (error.message.includes('401') || error.message.includes('invalid authentication')) {
+                  // Only try refresh if we have a refresh mechanism (i.e. not legacy string token)
+                  if (typeof token !== 'string' && token.refresh_token) {
+                      console.log('Token expired during upload, refreshing...');
+                      const newToken = await refreshToken();
+                      if (newToken) {
+                          currentToken = newToken;
+                          return await fn(newToken);
+                      }
+                  }
+              }
+              throw error;
+          }
+      };
+
     try {
-      const folderId = await DriveService.findOrCreateFolder(DRIVE_FOLDER_NAME, token.access_token);
+      const folderId = await runWithRetry((t) => DriveService.findOrCreateFolder(DRIVE_FOLDER_NAME, t));
       console.log('Folder ID:', folderId);
-      const fileData = await DriveService.uploadImage(base64Data, fileName, token.access_token, folderId);
+      const fileData = await runWithRetry((t) => DriveService.uploadImage(base64Data, fileName, t, folderId));
       console.log(`Uploaded ${fileName} to Google Drive. Response:`, fileData);
       return fileData.webViewLink;
     } catch (err) {
