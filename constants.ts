@@ -1,5 +1,7 @@
 import { Branding } from './types';
 
+export const DRIVE_FOLDER_NAME = 'Content Visualizer AI';
+
 export const DEFAULT_BRANDING: Branding = {
   id: 'default',
   name: 'CORPORATE',
