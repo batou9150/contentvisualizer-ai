@@ -1,5 +1,5 @@
 export type ImageSize = '1K' | '2K' | '4K';
-export type InputMode = 'url' | 'text' | 'image';
+export type InputMode = 'url' | 'text' | 'file';
 
 export interface Source {
   url: string;
@@ -22,7 +22,7 @@ export interface AppState {
   url: string;
   textContent: string;
   imagePreview: string | null;
-  imageData: { data: string; mimeType: string } | null;
+  fileData: { data: string; mimeType: string } | null;
   inputMode: InputMode;
   loading: boolean;
   error: string | null;
