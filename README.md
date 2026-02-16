@@ -15,7 +15,7 @@ Whether you're researching a topic, summarizing a long article, or needing a qui
 - **Multi-Modal Analysis:**
   - **URL Analysis:** Paste a link to a blog post or article, and the AI will browse and extract core concepts.
   - **Text Analysis:** Paste raw text directly for instant summarization.
-  - **Image Analysis:** Upload an image (e.g., a screenshot of a document or diagram) to extract and visualize its content.
+  - **File Analysis:** Upload a file (e.g., a screenshot of a document, diagram, or PDF) to extract and visualize its content.
 
 - **AI-Powered Insights:**
   - **Executive Summaries:** Get concise, formatted summaries with key takeaways and bolded terms.
@@ -78,7 +78,7 @@ Whether you're researching a topic, summarizing a long article, or needing a qui
 ## 📖 Usage
 
 1.  **Sign In:** Click "Sign in with Google" to access the application.
-2.  **Select Input Mode:** Choose between **URL**, **Direct Text**, or **From Image**.
+2.  **Select Input Mode:** Choose between **URL**, **Direct Text**, or **From File**.
 3.  **Enter Content:** Paste the URL, text, or upload your image.
 4.  **Analyze:** Click the **Analyze** button.
     - The AI will generate an Executive Summary and a Mermaid Mindmap.

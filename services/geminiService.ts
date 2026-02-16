@@ -43,7 +43,7 @@ export class GeminiService {
     return response.text.trim();
   }
 
-  static async processContent(input: string, mode: InputMode, image?: { data: string, mimeType: string }): Promise<ProcessedData> {
+  static async processContent(input: string, mode: InputMode, file?: { data: string, mimeType: string }): Promise<ProcessedData> {
     const ai = this.getAi();
 
     let prompt = "";
@@ -64,14 +64,14 @@ Your task:
       ${commonInstructions}
       IMPORTANT: Structure your response with the summary first, followed by the Mermaid code block.`;
       parts.push({ text: prompt });
-    } else if (mode === 'image' && image) {
-      prompt = `Analyze the attached image and extract all core concepts, textual information, and hierarchy.
+    } else if (mode === 'file' && file) {
+      prompt = `Analyze the attached file and extract all core concepts, textual information, and hierarchy.
       ${commonInstructions}
       IMPORTANT: Structure your response as JSON with 'summary' and 'mermaidCode' fields.`;
       parts.push({
         inlineData: {
-          data: image.data,
-          mimeType: image.mimeType
+          data: file.data,
+          mimeType: file.mimeType
         }
       });
       parts.push({ text: prompt });

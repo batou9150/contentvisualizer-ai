@@ -20,7 +20,7 @@ export const useContentAnalysis = () => {
       url: '',
       textContent: '',
       imagePreview: null,
-      imageData: null,
+      fileData: null,
       inputMode: 'url',
       loading: false,
       error: null,
@@ -45,16 +45,17 @@ export const useContentAnalysis = () => {
     return state.brandings.find(b => b.id === state.selectedBrandingId) || state.brandings[0] || DEFAULT_BRANDING;
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64 = (reader.result as string).split(',')[1];
+        const isImage = file.type.startsWith('image/');
         setState(prev => ({
           ...prev,
-          imagePreview: reader.result as string,
-          imageData: { data: base64, mimeType: file.type }
+          imagePreview: isImage ? (reader.result as string) : null,
+          fileData: { data: base64, mimeType: file.type }
         }));
       };
       reader.readAsDataURL(file);
@@ -63,11 +64,11 @@ export const useContentAnalysis = () => {
 
   const handleProcessInput = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { inputMode, url, textContent, imageData } = state;
+    const { inputMode, url, textContent, fileData } = state;
     const input = inputMode === 'url' ? url : textContent;
 
-    if (inputMode === 'image' && !imageData) return;
-    if (inputMode !== 'image' && !input) return;
+    if (inputMode === 'file' && !fileData) return;
+    if (inputMode !== 'file' && !input) return;
 
     setState(prev => ({
       ...prev,
@@ -79,7 +80,7 @@ export const useContentAnalysis = () => {
     }));
 
     try {
-      const result = await GeminiService.processContent(input, inputMode, imageData || undefined);
+      const result = await GeminiService.processContent(input, inputMode, fileData || undefined);
       setState(prev => ({ ...prev, data: result, loading: false }));
     } catch (err: any) {
       console.error(err);
@@ -156,10 +157,9 @@ export const useContentAnalysis = () => {
   return {
     state,
     setState,
-    handleImageUpload,
+    handleFileUpload,
     handleProcessInput,
     handleGenerateMindmapImage,
     handleGenerateSummaryImage
   };
 };
-

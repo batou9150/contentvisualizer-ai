@@ -12,7 +12,7 @@ const App: React.FC = () => {
   const {
     state,
     setState,
-    handleImageUpload,
+    handleFileUpload,
     handleProcessInput,
     handleGenerateMindmapImage,
     handleGenerateSummaryImage
@@ -80,8 +80,8 @@ const App: React.FC = () => {
             textContent={state.textContent}
             setTextContent={(text) => setState(prev => ({ ...prev, textContent: text }))}
             imagePreview={state.imagePreview}
-            imageData={state.imageData}
-            onImageUpload={handleImageUpload}
+            fileData={state.fileData}
+            onFileUpload={handleFileUpload}
             loading={state.loading}
             onSubmit={handleProcessInput}
             error={state.error}
