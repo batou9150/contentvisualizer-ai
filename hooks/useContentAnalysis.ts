@@ -30,6 +30,7 @@ export const useContentAnalysis = () => {
       isGeneratingSummaryImage: false,
       isGeneratingMindmapImage: false,
       imageSize: '2K',
+      aspectRatio: '16:9',
       showRawMermaid: false,
       brandings,
       selectedBrandingId: savedSelectedId || DEFAULT_BRANDING.id,
@@ -143,7 +144,7 @@ export const useContentAnalysis = () => {
     try {
       setState(prev => ({ ...prev, isGeneratingMindmapImage: true, error: null, mindmapDriveUrl: null }));
       const branding = getSelectedBranding();
-      const imageUrl = await GeminiService.generateInfographic(state.data.mermaidCode, state.imageSize, branding.prompt);
+      const imageUrl = await GeminiService.generateInfographic(state.data.mermaidCode, state.imageSize, state.aspectRatio, branding.prompt);
 
       const driveUrl = await uploadToDrive(imageUrl, `Mindmap_${Date.now()}.jpg`);
       console.log('Mindmap Drive URL:', driveUrl);
@@ -165,7 +166,7 @@ export const useContentAnalysis = () => {
     try {
       setState(prev => ({ ...prev, isGeneratingSummaryImage: true, error: null, summaryDriveUrl: null }));
       const branding = getSelectedBranding();
-      const imageUrl = await GeminiService.generateDirectInfographic(state.data.summary, state.imageSize, branding.prompt);
+      const imageUrl = await GeminiService.generateDirectInfographic(state.data.summary, state.imageSize, state.aspectRatio, branding.prompt);
 
       const driveUrl = await uploadToDrive(imageUrl, `Summary_${Date.now()}.jpg`);
       console.log('Summary Drive URL:', driveUrl);
