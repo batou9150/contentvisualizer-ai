@@ -38,6 +38,8 @@ const App: React.FC = () => {
         onChangeBrandings={(brandings) => setState(prev => ({ ...prev, brandings }))}
         imageSize={state.imageSize}
         setImageSize={(size) => setState(prev => ({ ...prev, imageSize: size }))}
+        aspectRatio={state.aspectRatio}
+        setAspectRatio={(ratio) => setState(prev => ({ ...prev, aspectRatio: ratio }))}
       />
 
       {!user ? (

@@ -156,7 +156,7 @@ Your task:
     };
   }
 
-  static async generateInfographic(mermaidCode: string, size: ImageSize, brandingPrompt: string): Promise<string> {
+  static async generateInfographic(mermaidCode: string, size: ImageSize, aspectRatio: string, brandingPrompt: string): Promise<string> {
     const ai = this.getAi();
 
     const prompt = `${brandingPrompt}
@@ -171,7 +171,7 @@ ${mermaidCode}`;
       },
       config: {
         imageConfig: {
-          aspectRatio: "16:9",
+          aspectRatio: aspectRatio,
           imageSize: size
         }
       }
@@ -186,7 +186,7 @@ ${mermaidCode}`;
     throw new Error("No image data found in response");
   }
 
-  static async generateDirectInfographic(content: string, size: ImageSize, brandingPrompt: string): Promise<string> {
+  static async generateDirectInfographic(content: string, size: ImageSize, aspectRatio: string, brandingPrompt: string): Promise<string> {
     const ai = this.getAi();
 
     const prompt = `${brandingPrompt}
@@ -201,7 +201,7 @@ ${content}`;
       },
       config: {
         imageConfig: {
-          aspectRatio: "16:9",
+          aspectRatio: aspectRatio,
           imageSize: size
         }
       }

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import BrandingManager from './BrandingManager';
 import HistoryDrawer from './HistoryDrawer';
 import { HistoryIcon } from './Icons';
-import { Branding, ImageSize } from '../types';
+import { Branding, ImageSize, AspectRatio } from '../types';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/useAuth';
 
@@ -13,6 +13,8 @@ interface HeaderProps {
   onChangeBrandings: (brandings: Branding[]) => void;
   imageSize: ImageSize;
   setImageSize: (size: ImageSize) => void;
+  aspectRatio: AspectRatio;
+  setAspectRatio: (ratio: AspectRatio) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -22,6 +24,8 @@ const Header: React.FC<HeaderProps> = ({
   onChangeBrandings,
   imageSize,
   setImageSize,
+  aspectRatio,
+  setAspectRatio,
 }) => {
 
   const { user, login, logout } = useAuth();
@@ -83,20 +87,39 @@ const Header: React.FC<HeaderProps> = ({
               onChangeBrandings={onChangeBrandings}
             />
 
-            <div className="relative flex items-center">
-              <select
-                value={imageSize}
-                onChange={(e) => setImageSize(e.target.value as ImageSize)}
-                className="appearance-none bg-gray-100 dark:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all pl-3 pr-8 py-1.5 cursor-pointer"
-              >
-                {(['1K', '2K', '4K'] as ImageSize[]).map((sz) => (
-                  <option key={sz} value={sz}>{sz}</option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
+            <div className="relative flex items-center gap-2">
+              <div className="relative flex items-center">
+                <select
+                  value={imageSize}
+                  onChange={(e) => setImageSize(e.target.value as ImageSize)}
+                  className="appearance-none bg-gray-100 dark:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all pl-3 pr-8 py-1.5 cursor-pointer"
+                >
+                  {(['1K', '2K', '4K'] as ImageSize[]).map((sz) => (
+                    <option key={sz} value={sz}>{sz}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="relative flex items-center">
+                <select
+                  value={aspectRatio}
+                  onChange={(e) => setAspectRatio(e.target.value as AspectRatio)}
+                  className="appearance-none bg-gray-100 dark:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all pl-3 pr-8 py-1.5 cursor-pointer"
+                >
+                  {(['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9'] as AspectRatio[]).map((ar) => (
+                    <option key={ar} value={ar}>{ar}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
 
