@@ -2,9 +2,8 @@
 export class DriveService {
   static async uploadImage(base64Data: string, fileName: string, accessToken: string, folderId?: string) {
     const boundary = 'foo_bar_baz';
-    const mimeType = 'image/png';
-    
-    // Remove the data:image/png;base64, prefix
+    const mimeType = 'image/jpeg';
+
     const base64Content = base64Data.split(',')[1] || base64Data;
 
     const metadata = {
@@ -59,9 +58,9 @@ export class DriveService {
     });
 
     if (!response.ok) {
-        const error = await response.json();
-        console.error('Drive findFolder failed:', error);
-        throw new Error(`Drive findFolder failed: ${error.error?.message || response.statusText}`);
+      const error = await response.json();
+      console.error('Drive findFolder failed:', error);
+      throw new Error(`Drive findFolder failed: ${error.error?.message || response.statusText}`);
     }
 
     const data = await response.json();

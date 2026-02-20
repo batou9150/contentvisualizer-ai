@@ -94,37 +94,37 @@ export const useContentAnalysis = () => {
 
   const uploadToDrive = async (base64Data: string, fileName: string) => {
     console.log('Attempting to upload to Drive:', fileName);
-    
+
     if (!token) {
-        console.warn('No auth token available.');
-        return null;
+      console.warn('No auth token available.');
+      return null;
     }
 
     let currentToken = token.access_token || (typeof token === 'string' ? token : null);
-    
+
     if (!currentToken) {
-         console.warn('No access token available for Drive upload.');
-         return null;
+      console.warn('No access token available for Drive upload.');
+      return null;
     }
 
     const runWithRetry = async (fn: (t: string) => Promise<any>) => {
-          try {
-              return await fn(currentToken);
-          } catch (error: any) {
-              if (error.message.includes('401') || error.message.includes('invalid authentication')) {
-                  // Only try refresh if we have a refresh mechanism (i.e. not legacy string token)
-                  if (typeof token !== 'string' && token.refresh_token) {
-                      console.log('Token expired during upload, refreshing...');
-                      const newToken = await refreshToken();
-                      if (newToken) {
-                          currentToken = newToken;
-                          return await fn(newToken);
-                      }
-                  }
-              }
-              throw error;
+      try {
+        return await fn(currentToken);
+      } catch (error: any) {
+        if (error.message.includes('401') || error.message.includes('invalid authentication')) {
+          // Only try refresh if we have a refresh mechanism (i.e. not legacy string token)
+          if (typeof token !== 'string' && token.refresh_token) {
+            console.log('Token expired during upload, refreshing...');
+            const newToken = await refreshToken();
+            if (newToken) {
+              currentToken = newToken;
+              return await fn(newToken);
+            }
           }
-      };
+        }
+        throw error;
+      }
+    };
 
     try {
       const folderId = await runWithRetry((t) => DriveService.findOrCreateFolder(DRIVE_FOLDER_NAME, t));
@@ -145,7 +145,7 @@ export const useContentAnalysis = () => {
       const branding = getSelectedBranding();
       const imageUrl = await GeminiService.generateInfographic(state.data.mermaidCode, state.imageSize, branding.prompt);
 
-      const driveUrl = await uploadToDrive(imageUrl, `Mindmap_${Date.now()}.png`);
+      const driveUrl = await uploadToDrive(imageUrl, `Mindmap_${Date.now()}.jpg`);
       console.log('Mindmap Drive URL:', driveUrl);
 
       setState(prev => ({
@@ -167,7 +167,7 @@ export const useContentAnalysis = () => {
       const branding = getSelectedBranding();
       const imageUrl = await GeminiService.generateDirectInfographic(state.data.summary, state.imageSize, branding.prompt);
 
-      const driveUrl = await uploadToDrive(imageUrl, `Summary_${Date.now()}.png`);
+      const driveUrl = await uploadToDrive(imageUrl, `Summary_${Date.now()}.jpg`);
       console.log('Summary Drive URL:', driveUrl);
 
       setState(prev => ({
