@@ -18,18 +18,6 @@ const apiKey = process.env.GEMINI_API_KEY;
 const staticPath = path.join(__dirname, 'dist');
 const publicPath = path.join(__dirname, 'public');
 
-const { GoogleAuth } = require('google-auth-library');
-
-const auth = new GoogleAuth({
-    scopes: 'https://www.googleapis.com/auth/cloud-platform'
-});
-
-async function getAccessToken() {
-    const client = await auth.getClient();
-    const accessToken = await client.getAccessToken();
-    return accessToken.token;
-}
-
 
 if (!apiKey) {
     // Only log an error, don't exit. The server will serve apps without proxy functionality
@@ -111,7 +99,7 @@ app.post('/auth/google/refresh', async (req, res) => {
         console.log('Refreshing access token...');
         oAuth2Client.setCredentials({ refresh_token });
         const { credentials } = await oAuth2Client.refreshAccessToken();
-        
+
         console.log('Token refresh successful');
         res.json(credentials);
     } catch (error) {
@@ -261,21 +249,12 @@ if ('serviceWorker' in navigator) {
 </script>
 `;
 
-app.get('/service-worker.js', (req, res) => {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Content-Type', 'application/javascript');
-    return res.sendFile(path.join(publicPath, 'service-worker.js'));
-});
-
-app.use('/public', express.static(publicPath));
-app.use(express.static(staticPath));
-
 // Serve index.html or placeholder based on API key and file availability
-app.get('*', (req, res) => {
+const defaultPage = (req, res) => {
     const placeholderPath = path.join(publicPath, 'placeholder.html');
 
     // Try to serve index.html
-    console.log("LOG: Route '*' accessed. Attempting to serve index.html.");
+    console.log("LOG: Route '/' accessed. Attempting to serve index.html.");
     const indexPath = path.join(staticPath, 'index.html');
 
     fs.readFile(indexPath, 'utf8', (err, indexHtmlData) => {
@@ -309,7 +288,19 @@ app.get('*', (req, res) => {
         }
         res.send(injectedHtml);
     });
+};
+
+app.get('/', defaultPage);
+app.get('/service-worker.js', (req, res) => {
+    return res.sendFile(path.join(publicPath, 'service-worker.js'));
 });
+
+app.use('/public', express.static(publicPath));
+
+app.use(express.static(staticPath));
+
+app.get('*', defaultPage)
+
 
 // Start the HTTP server
 const server = app.listen(port, () => {
