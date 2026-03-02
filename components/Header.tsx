@@ -54,19 +54,19 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="bg-white dark:bg-[#0f172a] border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 py-2 sm:py-0 sm:h-16 flex flex-wrap items-center justify-between gap-y-2">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(79,70,229,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.15)] text-white text-xl">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(79,70,229,0.5)] dark:shadow-[0_0_20px_rgba(255,255,255,0.15)] text-white text-lg sm:text-xl">
             🖼
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Content Visualizer <span className="text-indigo-600">AI</span></h1>
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-gray-900 dark:text-white">Content Visualizer <span className="text-indigo-600">AI</span></h1>
         </div>
 
         {!user ? (
-          <div className="flex items-center justify-center space-x-2">
+          <div className="flex items-center justify-center w-full sm:w-auto">
             <button
               onClick={() => googleLogin()}
-              className="flex items-center justify-center space-x-2 w-[220px] bg-white text-gray-700 hover:bg-gray-100 font-medium py-2 px-4 rounded-full transition-colors duration-200 shadow-md"
+              className="flex items-center justify-center space-x-2 w-full sm:w-[220px] bg-white text-gray-700 hover:bg-gray-100 font-medium py-2 px-4 rounded-full transition-colors duration-200 shadow-md text-sm sm:text-base"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -79,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({
           </div>
 
         ) : (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 flex-wrap sm:gap-4 ml-auto sm:ml-0">
             <BrandingManager
               brandings={brandings}
               selectedId={selectedBrandingId}
@@ -137,7 +137,7 @@ const Header: React.FC<HeaderProps> = ({
                   onClick={() => setShowLogout(!showLogout)}
                   className="flex items-center focus:outline-none"
                 >
-                  <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border border-slate-600 hover:border-indigo-500 transition-colors" />
+                  <img src={user.picture} alt={user.name} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-slate-600 hover:border-indigo-500 transition-colors" />
                 </button>
               )}
 
