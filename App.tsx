@@ -73,7 +73,7 @@ const App: React.FC = () => {
           </div>
         </div>
       ) : (
-        <main className="max-w-4xl mx-auto px-4 mt-8 space-y-8">
+        <main className="max-w-4xl mx-auto px-2 sm:px-4 mt-4 sm:mt-8 space-y-4 sm:space-y-8">
           <InputForm
             inputMode={state.inputMode}
             setInputMode={(mode) => setState(prev => ({ ...prev, inputMode: mode }))}
@@ -90,7 +90,7 @@ const App: React.FC = () => {
           />
 
           {(state.data) && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-4 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <ExecutiveSummary
                 data={state.data}
                 summaryImageUrl={state.summaryImageUrl}
