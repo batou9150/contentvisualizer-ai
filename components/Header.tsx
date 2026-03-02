@@ -94,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({
                   onChange={(e) => setImageSize(e.target.value as ImageSize)}
                   className="appearance-none bg-gray-100 dark:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all pl-3 pr-8 py-1.5 cursor-pointer"
                 >
-                  {(['1K', '2K', '4K'] as ImageSize[]).map((sz) => (
+                  {(['512px', '1K', '2K', '4K'] as ImageSize[]).map((sz) => (
                     <option key={sz} value={sz}>{sz}</option>
                   ))}
                 </select>

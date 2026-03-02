@@ -25,7 +25,7 @@ const VisualResult: React.FC<VisualResultProps> = ({ url, driveUrl }) => {
         )}
         <a
           href={url}
-          download={`slide_${Math.random().toString(36).substring(2, 9)}.jpg`}
+          download={`slide_${Math.random().toString(36).substring(2, 9)}`}
           className="px-6 py-2 bg-white text-gray-900 font-bold rounded-lg hover:scale-105 transition-transform shadow-xl"
         >
           Download
