@@ -157,59 +157,42 @@ Your task:
   }
 
   static async generateInfographic(mermaidCode: string, size: ImageSize, aspectRatio: string, brandingPrompt: string): Promise<string> {
-    const ai = this.getAi();
-
     const prompt = `${brandingPrompt}
 ---
 Here is a mindmap using Mermaid to visualize:
 ${mermaidCode}`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-image-preview',
-      contents: {
-        parts: [{ text: prompt }]
-      },
-      config: {
-        imageConfig: {
-          aspectRatio: aspectRatio,
-          imageSize: size
-        }
-      }
-    });
-
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        return `data:image/jpeg;base64,${part.inlineData.data}`;
-      }
-    }
-
-    throw new Error("No image data found in response");
+    return this.generateImage(prompt, size, aspectRatio);
   }
 
   static async generateDirectInfographic(content: string, size: ImageSize, aspectRatio: string, brandingPrompt: string): Promise<string> {
-    const ai = this.getAi();
-
     const prompt = `${brandingPrompt}
 ---
 CONTENT TO VISUALIZE:
 ${content}`;
 
+    return this.generateImage(prompt, size, aspectRatio);
+  }
+
+  static async generateImage(prompt: string, size: ImageSize, aspectRatio: string): Promise<string> {
+    const ai = this.getAi();
+
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-image-preview',
+      model: 'gemini-3.1-flash-image-preview',
       contents: {
         parts: [{ text: prompt }]
       },
       config: {
         imageConfig: {
           aspectRatio: aspectRatio,
-          imageSize: size
+          imageSize: size,
         }
       }
     });
 
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) {
-        return `data:image/jpeg;base64,${part.inlineData.data}`;
+        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
       }
     }
 

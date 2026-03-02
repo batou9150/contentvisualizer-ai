@@ -146,7 +146,7 @@ export const useContentAnalysis = () => {
       const branding = getSelectedBranding();
       const imageUrl = await GeminiService.generateInfographic(state.data.mermaidCode, state.imageSize, state.aspectRatio, branding.prompt);
 
-      const driveUrl = await uploadToDrive(imageUrl, `Mindmap_${Date.now()}.jpg`);
+      const driveUrl = await uploadToDrive(imageUrl, `Mindmap_${Date.now()}`);
       console.log('Mindmap Drive URL:', driveUrl);
 
       setState(prev => ({
@@ -168,7 +168,7 @@ export const useContentAnalysis = () => {
       const branding = getSelectedBranding();
       const imageUrl = await GeminiService.generateDirectInfographic(state.data.summary, state.imageSize, state.aspectRatio, branding.prompt);
 
-      const driveUrl = await uploadToDrive(imageUrl, `Summary_${Date.now()}.jpg`);
+      const driveUrl = await uploadToDrive(imageUrl, `Summary_${Date.now()}`);
       console.log('Summary Drive URL:', driveUrl);
 
       setState(prev => ({
