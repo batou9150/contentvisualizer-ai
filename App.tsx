@@ -83,6 +83,8 @@ const App: React.FC = () => {
             setTextContent={(text) => setState(prev => ({ ...prev, textContent: text }))}
             imagePreview={state.imagePreview}
             fileData={state.fileData}
+            fileName={state.fileName}
+            fileSize={state.fileSize}
             onFileUpload={handleFileUpload}
             loading={state.loading}
             onSubmit={handleProcessInput}

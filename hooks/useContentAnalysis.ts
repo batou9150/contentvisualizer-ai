@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AppState, Branding } from '../types';
 import { GeminiService } from '../services/geminiService';
 import { DriveService } from '../services/driveService';
-import { INITIAL_BRANDINGS, DEFAULT_BRANDING, DRIVE_FOLDER_NAME } from '../constants';
+import { INITIAL_BRANDINGS, DEFAULT_BRANDING, DRIVE_FOLDER_NAME, MAX_FILE_SIZE_BYTES } from '../constants';
 import { useTokenRetry } from './useTokenRetry';
 
 export const useContentAnalysis = () => {
@@ -18,6 +18,8 @@ export const useContentAnalysis = () => {
       textContent: '',
       imagePreview: null,
       fileData: null,
+      fileName: null,
+      fileSize: null,
       inputMode: 'url',
       loading: false,
       error: null,
@@ -45,19 +47,37 @@ export const useContentAnalysis = () => {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = (reader.result as string).split(',')[1];
-        const isImage = file.type.startsWith('image/');
-        setState(prev => ({
-          ...prev,
-          imagePreview: isImage ? (reader.result as string) : null,
-          fileData: { data: base64, mimeType: file.type }
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      const maxMB = MAX_FILE_SIZE_BYTES / (1024 * 1024);
+      const fileMB = (file.size / (1024 * 1024)).toFixed(1);
+      setState(prev => ({
+        ...prev,
+        error: `File is too large (${fileMB} MB). Maximum allowed size is ${maxMB} MB.`,
+        imagePreview: null,
+        fileData: null,
+        fileName: null,
+        fileSize: null,
+      }));
+      e.target.value = '';
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = (reader.result as string).split(',')[1];
+      const isImage = file.type.startsWith('image/');
+      setState(prev => ({
+        ...prev,
+        error: null,
+        imagePreview: isImage ? (reader.result as string) : null,
+        fileData: { data: base64, mimeType: file.type },
+        fileName: file.name,
+        fileSize: file.size,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleProcessInput = async (e: React.FormEvent) => {
