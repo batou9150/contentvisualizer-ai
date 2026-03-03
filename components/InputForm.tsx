@@ -11,11 +11,19 @@ interface InputFormProps {
   setTextContent: (text: string) => void;
   imagePreview: string | null;
   fileData: { data: string; mimeType: string } | null;
+  fileName: string | null;
+  fileSize: number | null;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   loading: boolean;
   onSubmit: (e: React.FormEvent) => void;
   error: string | null;
 }
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 const InputForm: React.FC<InputFormProps> = ({
   inputMode,
@@ -26,6 +34,8 @@ const InputForm: React.FC<InputFormProps> = ({
   setTextContent,
   imagePreview,
   fileData,
+  fileName,
+  fileSize,
   onFileUpload,
   loading,
   onSubmit,
@@ -80,6 +90,9 @@ const InputForm: React.FC<InputFormProps> = ({
                 {imagePreview ? (
                   <div className="flex flex-col items-center">
                     <img src={imagePreview} alt="Preview" className="max-h-32 sm:max-h-48 rounded-lg shadow-sm mb-3" />
+                    {fileName && fileSize != null && (
+                      <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">{fileName} ({formatFileSize(fileSize)})</p>
+                    )}
                     <p className="text-xs text-gray-500 dark:text-gray-400">Click or drag to change file</p>
                   </div>
                 ) : fileData ? (
@@ -87,7 +100,11 @@ const InputForm: React.FC<InputFormProps> = ({
                     <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-3">
                       <span className="text-2xl">📄</span>
                     </div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">File selected</p>
+                    {fileName && fileSize != null ? (
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{fileName} ({formatFileSize(fileSize)})</p>
+                    ) : (
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">File selected</p>
+                    )}
                     <p className="text-xs text-gray-500 dark:text-gray-400">Click or drag to change file</p>
                   </div>
                 ) : (

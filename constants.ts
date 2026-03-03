@@ -2,6 +2,9 @@ import { Branding } from './types';
 
 export const DRIVE_FOLDER_NAME = 'Content Visualizer AI';
 
+/** Maximum file size in bytes (20 MB — matches Gemini API inline data limit). */
+export const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+
 export const DEFAULT_BRANDING: Branding = {
   id: 'default',
   name: 'CORPORATE',
