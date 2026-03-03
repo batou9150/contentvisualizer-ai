@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { CloseIcon, DeleteIcon } from './Icons';
-import { useAuth } from '../contexts/useAuth';
 import { DriveService } from '../services/driveService';
 import { DRIVE_FOLDER_NAME } from '../constants';
+import { useTokenRetry } from '../hooks/useTokenRetry';
 
 interface HistoryItem {
   id: string;
@@ -19,37 +19,19 @@ interface HistoryDrawerProps {
 }
 
 const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose }) => {
-  const { token, refreshToken } = useAuth();
+  const { withTokenRetry, hasToken } = useTokenRetry();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!isOpen || !token?.access_token) return;
+      if (!isOpen || !hasToken) return;
 
       setLoading(true);
-      
-      let currentToken = token.access_token;
-
-      const runWithRetry = async (fn: (t: string) => Promise<any>) => {
-          try {
-              return await fn(currentToken);
-          } catch (error: any) {
-              if (error.message.includes('401') || error.message.includes('invalid authentication')) {
-                  console.log('Token expired during operation, refreshing...');
-                  const newToken = await refreshToken();
-                  if (newToken) {
-                      currentToken = newToken;
-                      return await fn(newToken);
-                  }
-              }
-              throw error;
-          }
-      };
 
       try {
-        const folderId = await runWithRetry((t) => DriveService.findOrCreateFolder(DRIVE_FOLDER_NAME, t));
-        const files = await runWithRetry((t) => DriveService.listFiles(folderId, t));
+        const folderId = await withTokenRetry((t) => DriveService.findOrCreateFolder(DRIVE_FOLDER_NAME, t));
+        const files = await withTokenRetry((t) => DriveService.listFiles(folderId, t));
 
         const items: HistoryItem[] = files.map((file: any) => ({
           id: file.id,
@@ -68,35 +50,18 @@ const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose }) => {
     };
 
     fetchHistory();
-  }, [isOpen, token, refreshToken]);
+  }, [isOpen, hasToken, withTokenRetry]);
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!token?.access_token) return;
+    if (!hasToken) return;
 
     setHistory(prev => prev.map(item => item.id === id ? { ...item, isDeleting: true } : item));
 
-    let currentToken = token.access_token;
-    const runWithRetry = async (fn: (t: string) => Promise<any>) => {
-        try {
-            return await fn(currentToken);
-        } catch (error: any) {
-            if (error.message.includes('401') || error.message.includes('invalid authentication')) {
-                console.log('Token expired during delete, refreshing...');
-                const newToken = await refreshToken();
-                if (newToken) {
-                    currentToken = newToken;
-                    return await fn(newToken);
-                }
-            }
-            throw error;
-        }
-    };
-
     try {
-      await runWithRetry((t) => DriveService.deleteFile(id, t));
+      await withTokenRetry((t) => DriveService.deleteFile(id, t));
       setHistory(prev => prev.filter(item => item.id !== id));
     } catch (error) {
       console.error('Failed to delete file:', error);
