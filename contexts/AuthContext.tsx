@@ -1,14 +1,14 @@
 import React, { useState, useEffect, ReactNode, useCallback } from 'react';
-import { GoogleCredentialResponse, googleLogout } from '@react-oauth/google';
+import { googleLogout } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
-import { AuthContext, User } from './useAuth';
+import { AuthContext, User, TokenState, LoginResponse } from './useAuth';
 
 const STORAGE_KEY = 'contentvisualiserai_user';
 const TOKEN_KEY = 'contentvisualiserai_token';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<any | null>(null);
+    const [token, setToken] = useState<TokenState>(null);
 
     useEffect(() => {
         if (typeof token === 'string') {
@@ -42,8 +42,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, []);
 
-    const login = async (response: any) => {
-        if (response.code) {
+    const login = async (response: LoginResponse) => {
+        if ('code' in response) {
             console.log('Received auth code, exchanging for tokens...');
             try {
                 const res = await fetch('/auth/google', {
@@ -74,9 +74,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 console.error('Login failed during code exchange:', error);
                 // Optionally show user feedback here
             }
-        } else if (response.credential) {
+        } else if ('credential' in response) {
             // Fallback for legacy/implicit flow if needed
-            const decoded: any = jwtDecode(response.credential);
+            const decoded = jwtDecode<{ sub: string; name: string; email: string; picture: string }>(response.credential);
             const userData: User = {
                 id: decoded.sub,
                 name: decoded.name,

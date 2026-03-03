@@ -1,19 +1,30 @@
 import { useCallback } from 'react';
-import { useAuth } from '../contexts/useAuth';
+import { useAuth, AuthTokens } from '../contexts/useAuth';
 
 export const useTokenRetry = () => {
   const { token, refreshToken } = useAuth();
 
+  const getAccessToken = (): string | null => {
+    if (typeof token === 'string') return token;
+    if (token && typeof token === 'object') return token.access_token;
+    return null;
+  };
+
+  const canRefresh = (): boolean => {
+    return typeof token === 'object' && token !== null && !!token.refresh_token;
+  };
+
   const withTokenRetry = useCallback(
     async <T>(fn: (accessToken: string) => Promise<T>): Promise<T> => {
-      const accessToken = token?.access_token || (typeof token === 'string' ? token : null);
+      const accessToken = getAccessToken();
       if (!accessToken) throw new Error('No access token available');
 
       try {
         return await fn(accessToken);
-      } catch (error: any) {
-        if (error.message?.includes('401') || error.message?.includes('invalid authentication')) {
-          if (typeof token !== 'string' && token?.refresh_token) {
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : '';
+        if (message.includes('401') || message.includes('invalid authentication')) {
+          if (canRefresh()) {
             const newToken = await refreshToken();
             if (newToken) return await fn(newToken);
           }
@@ -24,5 +35,5 @@ export const useTokenRetry = () => {
     [token, refreshToken]
   );
 
-  return { withTokenRetry, hasToken: !!token?.access_token };
+  return { withTokenRetry, hasToken: !!getAccessToken() };
 };
