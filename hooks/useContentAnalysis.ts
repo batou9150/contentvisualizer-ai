@@ -8,9 +8,6 @@ import { useAuth } from '../contexts/useAuth';
 export const useContentAnalysis = () => {
   const { token, refreshToken } = useAuth();
 
-  useEffect(() => {
-    console.log('Current Auth Token:', token);
-  }, [token]);
 
   const [state, setState] = useState<AppState>(() => {
     const savedBrandings = localStorage.getItem('brandings');
