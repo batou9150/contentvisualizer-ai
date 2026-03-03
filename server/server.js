@@ -293,6 +293,12 @@ const defaultPage = (req, res) => {
 };
 
 app.get('/', defaultPage);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', uptime: process.uptime() });
+});
+
 app.get('/service-worker.js', (req, res) => {
     return res.sendFile(path.join(publicPath, 'service-worker.js'));
 });
@@ -409,4 +415,37 @@ server.on('upgrade', (request, socket, head) => {
         socket.destroy();
     }
 });
+
+// Graceful shutdown
+const SHUTDOWN_TIMEOUT_MS = 10000;
+
+function shutdown(signal) {
+    console.log(`\n${signal} received. Shutting down gracefully...`);
+
+    // Close all WebSocket connections
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.close(1001, 'Server shutting down');
+        }
+    });
+
+    // Stop accepting new connections and close the HTTP server
+    server.close((err) => {
+        if (err) {
+            console.error('Error during server close:', err);
+            process.exit(1);
+        }
+        console.log('Server closed. Exiting.');
+        process.exit(0);
+    });
+
+    // Force exit if graceful shutdown takes too long
+    setTimeout(() => {
+        console.error(`Shutdown timed out after ${SHUTDOWN_TIMEOUT_MS}ms. Forcing exit.`);
+        process.exit(1);
+    }, SHUTDOWN_TIMEOUT_MS).unref();
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
