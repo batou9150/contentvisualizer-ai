@@ -7,10 +7,32 @@ export interface User {
     picture: string;
 }
 
+export interface AuthTokens {
+    access_token: string;
+    refresh_token?: string;
+    id_token?: string;
+    expiry_date?: number;
+    token_type?: string;
+    scope?: string;
+}
+
+/** Token is either an OAuth2 tokens object, a legacy JWT string, or null. */
+export type TokenState = AuthTokens | string | null;
+
+export interface LoginCodeResponse {
+    code: string;
+}
+
+export interface LoginCredentialResponse {
+    credential: string;
+}
+
+export type LoginResponse = LoginCodeResponse | LoginCredentialResponse;
+
 export interface AuthContextType {
     user: User | null;
-    token: any | null;
-    login: (response: any) => void;
+    token: TokenState;
+    login: (response: LoginResponse) => void;
     logout: () => void;
     refreshToken: () => Promise<string | null>;
 }

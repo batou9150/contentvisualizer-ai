@@ -2,15 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { AppState, Branding } from '../types';
 import { GeminiService } from '../services/geminiService';
 import { DriveService } from '../services/driveService';
-import { INITIAL_BRANDINGS, DEFAULT_BRANDING, DRIVE_FOLDER_NAME } from '../constants';
-import { useAuth } from '../contexts/useAuth';
+import { INITIAL_BRANDINGS, DEFAULT_BRANDING, DRIVE_FOLDER_NAME, MAX_FILE_SIZE_BYTES } from '../constants';
+import { useTokenRetry } from './useTokenRetry';
 
 export const useContentAnalysis = () => {
-  const { token, refreshToken } = useAuth();
+  const { withTokenRetry, hasToken } = useTokenRetry();
 
-  useEffect(() => {
-    console.log('Current Auth Token:', token);
-  }, [token]);
 
   const [state, setState] = useState<AppState>(() => {
     const savedBrandings = localStorage.getItem('brandings');
@@ -21,6 +18,8 @@ export const useContentAnalysis = () => {
       textContent: '',
       imagePreview: null,
       fileData: null,
+      fileName: null,
+      fileSize: null,
       inputMode: 'url',
       loading: false,
       error: null,
@@ -48,19 +47,37 @@ export const useContentAnalysis = () => {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = (reader.result as string).split(',')[1];
-        const isImage = file.type.startsWith('image/');
-        setState(prev => ({
-          ...prev,
-          imagePreview: isImage ? (reader.result as string) : null,
-          fileData: { data: base64, mimeType: file.type }
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      const maxMB = MAX_FILE_SIZE_BYTES / (1024 * 1024);
+      const fileMB = (file.size / (1024 * 1024)).toFixed(1);
+      setState(prev => ({
+        ...prev,
+        error: `File is too large (${fileMB} MB). Maximum allowed size is ${maxMB} MB.`,
+        imagePreview: null,
+        fileData: null,
+        fileName: null,
+        fileSize: null,
+      }));
+      e.target.value = '';
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = (reader.result as string).split(',')[1];
+      const isImage = file.type.startsWith('image/');
+      setState(prev => ({
+        ...prev,
+        error: null,
+        imagePreview: isImage ? (reader.result as string) : null,
+        fileData: { data: base64, mimeType: file.type },
+        fileName: file.name,
+        fileSize: file.size,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleProcessInput = async (e: React.FormEvent) => {
@@ -94,44 +111,14 @@ export const useContentAnalysis = () => {
   };
 
   const uploadToDrive = async (base64Data: string, fileName: string) => {
-    console.log('Attempting to upload to Drive:', fileName);
-
-    if (!token) {
-      console.warn('No auth token available.');
-      return null;
-    }
-
-    let currentToken = token.access_token || (typeof token === 'string' ? token : null);
-
-    if (!currentToken) {
+    if (!hasToken) {
       console.warn('No access token available for Drive upload.');
       return null;
     }
 
-    const runWithRetry = async (fn: (t: string) => Promise<any>) => {
-      try {
-        return await fn(currentToken);
-      } catch (error: any) {
-        if (error.message.includes('401') || error.message.includes('invalid authentication')) {
-          // Only try refresh if we have a refresh mechanism (i.e. not legacy string token)
-          if (typeof token !== 'string' && token.refresh_token) {
-            console.log('Token expired during upload, refreshing...');
-            const newToken = await refreshToken();
-            if (newToken) {
-              currentToken = newToken;
-              return await fn(newToken);
-            }
-          }
-        }
-        throw error;
-      }
-    };
-
     try {
-      const folderId = await runWithRetry((t) => DriveService.findOrCreateFolder(DRIVE_FOLDER_NAME, t));
-      console.log('Folder ID:', folderId);
-      const fileData = await runWithRetry((t) => DriveService.uploadImage(base64Data, fileName, t, folderId));
-      console.log(`Uploaded ${fileName} to Google Drive. Response:`, fileData);
+      const folderId = await withTokenRetry((t) => DriveService.findOrCreateFolder(DRIVE_FOLDER_NAME, t));
+      const fileData = await withTokenRetry((t) => DriveService.uploadImage(base64Data, fileName, t, folderId));
       return fileData.webViewLink;
     } catch (err) {
       console.error('Failed to upload to Google Drive:', err);

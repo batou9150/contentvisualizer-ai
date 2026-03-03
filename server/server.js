@@ -53,7 +53,8 @@ const CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.VITE_GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = 'postmessage'; // Using 'postmessage' for the code flow
 
-const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+// Helper to create a per-request OAuth2Client to avoid shared state race conditions
+const createOAuth2Client = () => new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 app.post('/auth/google', async (req, res) => {
     const { code } = req.body;
@@ -63,11 +64,11 @@ app.post('/auth/google', async (req, res) => {
 
     try {
         console.log('Exchanging auth code for tokens...');
-        const { tokens } = await oAuth2Client.getToken(code);
-        oAuth2Client.setCredentials(tokens);
+        const client = createOAuth2Client();
+        const { tokens } = await client.getToken(code);
 
         // Verify ID token to get user info
-        const ticket = await oAuth2Client.verifyIdToken({
+        const ticket = await client.verifyIdToken({
             idToken: tokens.id_token,
             audience: CLIENT_ID,
         });
@@ -84,8 +85,8 @@ app.post('/auth/google', async (req, res) => {
         });
         console.log('Auth exchange successful for user:', payload.email);
     } catch (error) {
-        console.error('Error verifying Google code:', error);
-        res.status(500).json({ error: 'Authentication failed', details: error.message });
+        console.error('Error during auth exchange:', error.message);
+        res.status(500).json({ error: 'Authentication failed' });
     }
 });
 
@@ -97,20 +98,20 @@ app.post('/auth/google/refresh', async (req, res) => {
 
     try {
         console.log('Refreshing access token...');
-        oAuth2Client.setCredentials({ refresh_token });
-        const { credentials } = await oAuth2Client.refreshAccessToken();
+        const client = createOAuth2Client();
+        client.setCredentials({ refresh_token });
+        const { credentials } = await client.refreshAccessToken();
 
         console.log('Token refresh successful');
         res.json(credentials);
     } catch (error) {
-        console.error('Error refreshing token:', error);
-        res.status(500).json({ error: 'Token refresh failed', details: error.message });
+        console.error('Error refreshing token:', error.message);
+        res.status(500).json({ error: 'Token refresh failed' });
     }
 });
 
 // Proxy route for Gemini API calls (HTTP)
 app.use('/api-proxy', async (req, res, next) => {
-    console.log(req.ip);
     // If the request is an upgrade request, it's for WebSockets, so pass to next middleware/handler
     if (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket') {
         return next(); // Pass to the WebSocket upgrade handler
@@ -118,15 +119,16 @@ app.use('/api-proxy', async (req, res, next) => {
 
     // Handle OPTIONS request for CORS preflight
     if (req.method === 'OPTIONS') {
-        res.setHeader('Access-Control-Allow-Origin', '*'); // Adjust as needed for security
+        const allowedOrigin = process.env.CORS_ORIGIN || `http://localhost:${port}`;
+        res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Goog-Api-Key');
         res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight response for 1 day
         return res.sendStatus(200);
     }
 
-    if (req.body) { // Only log body if it exists
-        console.log("  Request Body (from frontend):", req.body);
+    if (process.env.NODE_ENV === 'development' && req.body) {
+        console.log("  Request Body (truncated):", JSON.stringify(req.body).substring(0, 200));
     }
     try {
         // Construct the target URL by taking the part of the path after /api-proxy/
@@ -291,6 +293,12 @@ const defaultPage = (req, res) => {
 };
 
 app.get('/', defaultPage);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', uptime: process.uptime() });
+});
+
 app.get('/service-worker.js', (req, res) => {
     return res.sendFile(path.join(publicPath, 'service-worker.js'));
 });
@@ -330,7 +338,7 @@ server.on('upgrade', (request, socket, head) => {
             const clientQuery = new URLSearchParams(requestUrl.search);
             clientQuery.set('key', apiKey);
             const targetGeminiWsUrl = `${externalWsBaseUrl}${targetPathSegment}?${clientQuery.toString()}`;
-            console.log(`Attempting to connect to target WebSocket: ${targetGeminiWsUrl}`);
+            console.log(`Attempting to connect to target WebSocket: ${targetPathSegment}`);
 
             const geminiWs = new WebSocket(targetGeminiWsUrl, {
                 protocol: request.headers['sec-websocket-protocol'],
@@ -407,4 +415,37 @@ server.on('upgrade', (request, socket, head) => {
         socket.destroy();
     }
 });
+
+// Graceful shutdown
+const SHUTDOWN_TIMEOUT_MS = 10000;
+
+function shutdown(signal) {
+    console.log(`\n${signal} received. Shutting down gracefully...`);
+
+    // Close all WebSocket connections
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.close(1001, 'Server shutting down');
+        }
+    });
+
+    // Stop accepting new connections and close the HTTP server
+    server.close((err) => {
+        if (err) {
+            console.error('Error during server close:', err);
+            process.exit(1);
+        }
+        console.log('Server closed. Exiting.');
+        process.exit(0);
+    });
+
+    // Force exit if graceful shutdown takes too long
+    setTimeout(() => {
+        console.error(`Shutdown timed out after ${SHUTDOWN_TIMEOUT_MS}ms. Forcing exit.`);
+        process.exit(1);
+    }, SHUTDOWN_TIMEOUT_MS).unref();
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 

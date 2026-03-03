@@ -24,6 +24,8 @@ export interface AppState {
   textContent: string;
   imagePreview: string | null;
   fileData: { data: string; mimeType: string } | null;
+  fileName: string | null;
+  fileSize: number | null;
   inputMode: InputMode;
   loading: boolean;
   error: string | null;
