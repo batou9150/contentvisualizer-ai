@@ -28,6 +28,8 @@ export const useContentAnalysis = () => {
       mindmapImageUrl: null,
       isGeneratingSummaryImage: false,
       isGeneratingMindmapImage: false,
+      isImprovingSummaryImage: false,
+      isImprovingMindmapImage: false,
       imageSize: '2K',
       aspectRatio: '16:9',
       showRawMermaid: false,
@@ -170,12 +172,58 @@ export const useContentAnalysis = () => {
     }
   };
 
+  const handleImproveMindmapImage = async (instruction: string) => {
+    if (!state.data) return;
+    try {
+      setState(prev => ({ ...prev, isImprovingMindmapImage: true, error: null, mindmapDriveUrl: null }));
+      const branding = getSelectedBranding();
+      const basePrompt = `${branding.prompt}\n---\nHere is a mindmap using Mermaid to visualize:\n${state.data.mermaidCode}`;
+      const improvePrompt = `${basePrompt}\n\n---\nIMPROVEMENT INSTRUCTION: ${instruction}`;
+      const imageUrl = await GeminiService.generateImage(improvePrompt, state.imageSize, state.aspectRatio);
+
+      const driveUrl = await uploadToDrive(imageUrl, `Mindmap_${Date.now()}`);
+      setState(prev => ({
+        ...prev,
+        mindmapImageUrl: imageUrl,
+        mindmapDriveUrl: driveUrl,
+        isImprovingMindmapImage: false
+      }));
+    } catch (err: any) {
+      console.error(err);
+      setState(prev => ({ ...prev, error: "Image improvement failed.", isImprovingMindmapImage: false }));
+    }
+  };
+
+  const handleImproveSummaryImage = async (instruction: string) => {
+    if (!state.data) return;
+    try {
+      setState(prev => ({ ...prev, isImprovingSummaryImage: true, error: null, summaryDriveUrl: null }));
+      const branding = getSelectedBranding();
+      const basePrompt = `${branding.prompt}\n---\nCONTENT TO VISUALIZE:\n${state.data.summary}`;
+      const improvePrompt = `${basePrompt}\n\n---\nIMPROVEMENT INSTRUCTION: ${instruction}`;
+      const imageUrl = await GeminiService.generateImage(improvePrompt, state.imageSize, state.aspectRatio);
+
+      const driveUrl = await uploadToDrive(imageUrl, `Summary_${Date.now()}`);
+      setState(prev => ({
+        ...prev,
+        summaryImageUrl: imageUrl,
+        summaryDriveUrl: driveUrl,
+        isImprovingSummaryImage: false
+      }));
+    } catch (err: any) {
+      console.error(err);
+      setState(prev => ({ ...prev, error: "Image improvement failed.", isImprovingSummaryImage: false }));
+    }
+  };
+
   return {
     state,
     setState,
     handleFileUpload,
     handleProcessInput,
     handleGenerateMindmapImage,
-    handleGenerateSummaryImage
+    handleGenerateSummaryImage,
+    handleImproveMindmapImage,
+    handleImproveSummaryImage
   };
 };

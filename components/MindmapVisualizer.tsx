@@ -10,6 +10,8 @@ interface MindmapVisualizerProps {
   mindmapDriveUrl: string | null;
   isGeneratingMindmapImage: boolean;
   onGenerateImage: () => void;
+  onImproveImage: (instruction: string) => void;
+  isImprovingImage: boolean;
   showRawMermaid: boolean;
   setShowRawMermaid: (show: boolean) => void;
 }
@@ -20,6 +22,8 @@ const MindmapVisualizer: React.FC<MindmapVisualizerProps> = ({
   mindmapDriveUrl,
   isGeneratingMindmapImage,
   onGenerateImage,
+  onImproveImage,
+  isImprovingImage,
   showRawMermaid,
   setShowRawMermaid
 }) => {
@@ -49,7 +53,7 @@ const MindmapVisualizer: React.FC<MindmapVisualizerProps> = ({
       ) : (
         <MermaidRenderer chart={data.mermaidCode} />
       )}
-      <VisualResult url={mindmapImageUrl} driveUrl={mindmapDriveUrl} />
+      <VisualResult url={mindmapImageUrl} driveUrl={mindmapDriveUrl} onImprove={onImproveImage} isImproving={isImprovingImage} />
     </section>
   );
 };

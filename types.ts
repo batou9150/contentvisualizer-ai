@@ -36,6 +36,8 @@ export interface AppState {
   mindmapDriveUrl: string | null;
   isGeneratingSummaryImage: boolean;
   isGeneratingMindmapImage: boolean;
+  isImprovingSummaryImage: boolean;
+  isImprovingMindmapImage: boolean;
   imageSize: ImageSize;
   aspectRatio: AspectRatio;
   showRawMermaid: boolean;

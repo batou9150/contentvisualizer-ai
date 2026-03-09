@@ -15,7 +15,9 @@ const App: React.FC = () => {
     handleFileUpload,
     handleProcessInput,
     handleGenerateMindmapImage,
-    handleGenerateSummaryImage
+    handleGenerateSummaryImage,
+    handleImproveMindmapImage,
+    handleImproveSummaryImage
   } = useContentAnalysis();
 
   const { user, login, logout } = useAuth();
@@ -99,6 +101,8 @@ const App: React.FC = () => {
                 summaryDriveUrl={state.summaryDriveUrl}
                 isGeneratingSummaryImage={state.isGeneratingSummaryImage}
                 onGenerateImage={handleGenerateSummaryImage}
+                onImproveImage={handleImproveSummaryImage}
+                isImprovingImage={state.isImprovingSummaryImage}
               />
 
               <MindmapVisualizer
@@ -107,6 +111,8 @@ const App: React.FC = () => {
                 mindmapDriveUrl={state.mindmapDriveUrl}
                 isGeneratingMindmapImage={state.isGeneratingMindmapImage}
                 onGenerateImage={handleGenerateMindmapImage}
+                onImproveImage={handleImproveMindmapImage}
+                isImprovingImage={state.isImprovingMindmapImage}
                 showRawMermaid={state.showRawMermaid}
                 setShowRawMermaid={(show) => setState(prev => ({ ...prev, showRawMermaid: show }))}
               />
