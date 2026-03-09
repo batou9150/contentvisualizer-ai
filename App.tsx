@@ -103,6 +103,7 @@ const App: React.FC = () => {
                 onGenerateImage={handleGenerateSummaryImage}
                 onImproveImage={handleImproveSummaryImage}
                 isImprovingImage={state.isImprovingSummaryImage}
+                onSummaryChange={(summary) => setState(prev => ({ ...prev, data: prev.data ? { ...prev.data, summary } : prev.data }))}
               />
 
               <MindmapVisualizer
@@ -115,6 +116,7 @@ const App: React.FC = () => {
                 isImprovingImage={state.isImprovingMindmapImage}
                 showRawMermaid={state.showRawMermaid}
                 setShowRawMermaid={(show) => setState(prev => ({ ...prev, showRawMermaid: show }))}
+                onMermaidChange={(mermaidCode) => setState(prev => ({ ...prev, data: prev.data ? { ...prev.data, mermaidCode } : prev.data }))}
               />
             </div>
           )}
