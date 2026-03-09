@@ -7,6 +7,16 @@ export class GeminiService {
     return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   }
 
+  private static normalizeNewlines(text: string): string {
+    // Fix escaped newlines (e.g. \\n, \\\\n) from JSON structured output
+    let result = text.replace(/\\+n/g, '\n');
+    // Insert newlines before inline bullet patterns that Gemini sometimes produces
+    result = result.replace(/ ●/g, '\n●').replace(/ ■/g, '\n■').replace(/ •/g, '\n•');
+    // Insert newlines before markdown-style bullets/headers missing line breaks
+    result = result.replace(/ (?=- \*\*)/g, '\n');
+    return result.trim();
+  }
+
   private static extractMermaidFromText(text: string): string | null {
     const mermaidRegex = /```mermaid\s*([\s\S]*?)\s*```/;
     const match = text.match(mermaidRegex);
@@ -49,10 +59,13 @@ export class GeminiService {
     let prompt = "";
     const commonInstructions = `
 Your task:
-1. Provide a well-structured, professional executive summary of the content. 
-   - Use bullet points for key takeaways.
+1. Provide a well-structured, professional executive summary of the content formatted in Markdown.
+   - Use proper Markdown headings (##, ###) to organize sections.
+   - Use Markdown bullet points (- ) for key takeaways, each on its own line.
    - Use bold text (e.g., **Key Term**) for important concepts.
+   - Include proper line breaks between paragraphs and sections.
    - Keep it professional and high-level.
+   - Do NOT include "Executive Summary" as a title or heading in the output — the UI already displays this label.
 2. Create a Mermaid.js mindmap syntax representing the content structure.
 `;
 
@@ -140,8 +153,8 @@ Your task:
     } else {
       try {
         const json = JSON.parse(rawText);
-        summary = json.summary || "No summary available.";
-        mermaidCode = json.mermaidCode || "mindmap\n  root((No Content))";
+        summary = this.normalizeNewlines(json.summary || "No summary available.");
+        mermaidCode = this.normalizeNewlines(json.mermaidCode || "mindmap\n  root((No Content))");
       } catch (e) {
         console.warn("Failed to parse JSON response:", e);
         mermaidCode = this.extractMermaidFromText(rawText) || "mindmap\n  root((No Content))";
