@@ -12,6 +12,7 @@ interface ExecutiveSummaryProps {
   onGenerateImage: () => void;
   onImproveImage: (instruction: string) => void;
   isImprovingImage: boolean;
+  onSummaryChange: (summary: string) => void;
 }
 
 const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
@@ -21,7 +22,8 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   isGeneratingSummaryImage,
   onGenerateImage,
   onImproveImage,
-  isImprovingImage
+  isImprovingImage,
+  onSummaryChange
 }) => {
   const [showRawCode, setShowRawCode] = useState(false);
 
@@ -47,7 +49,11 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
         </div>
       </div>
       {showRawCode ? (
-        <div className="bg-gray-900 text-indigo-300 p-6 rounded-xl border border-gray-800 shadow-inner overflow-x-auto font-mono text-sm leading-relaxed whitespace-pre-wrap mb-6">{data.summary}</div>
+        <textarea
+          value={data.summary}
+          onChange={(e) => onSummaryChange(e.target.value)}
+          className="w-full min-h-[200px] bg-gray-900 text-indigo-300 p-6 rounded-xl border border-gray-800 shadow-inner font-mono text-sm leading-relaxed whitespace-pre-wrap mb-6 resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        />
       ) : (
         <FormattedSummary text={data.summary} />
       )}

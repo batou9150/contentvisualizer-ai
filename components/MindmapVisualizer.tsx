@@ -14,6 +14,7 @@ interface MindmapVisualizerProps {
   isImprovingImage: boolean;
   showRawMermaid: boolean;
   setShowRawMermaid: (show: boolean) => void;
+  onMermaidChange: (mermaidCode: string) => void;
 }
 
 const MindmapVisualizer: React.FC<MindmapVisualizerProps> = ({
@@ -25,7 +26,8 @@ const MindmapVisualizer: React.FC<MindmapVisualizerProps> = ({
   onImproveImage,
   isImprovingImage,
   showRawMermaid,
-  setShowRawMermaid
+  setShowRawMermaid,
+  onMermaidChange
 }) => {
   return (
     <section className="bg-white dark:bg-[#1e293b] p-4 sm:p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
@@ -49,7 +51,11 @@ const MindmapVisualizer: React.FC<MindmapVisualizerProps> = ({
         </div>
       </div>
       {showRawMermaid ? (
-        <div className="bg-gray-900 text-indigo-300 p-6 rounded-xl border border-gray-800 shadow-inner overflow-x-auto font-mono text-sm leading-relaxed whitespace-pre mb-6">{data.mermaidCode}</div>
+        <textarea
+          value={data.mermaidCode}
+          onChange={(e) => onMermaidChange(e.target.value)}
+          className="w-full min-h-[200px] bg-gray-900 text-indigo-300 p-6 rounded-xl border border-gray-800 shadow-inner font-mono text-sm leading-relaxed whitespace-pre mb-6 resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+        />
       ) : (
         <MermaidRenderer chart={data.mermaidCode} />
       )}
