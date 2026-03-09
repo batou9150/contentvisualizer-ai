@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleDriveIcon, DownloadIcon } from './Icons';
+import { GoogleDriveIcon, DownloadIcon, ExpandIcon, ChevronsDownUpIcon } from './Icons';
 
 interface VisualResultProps {
   url: string | null;
@@ -91,13 +91,13 @@ const VisualResult: React.FC<VisualResultProps> = ({ url, driveUrl, onImprove, i
                     onClick={() => handleImprove('Make the image more detailed with richer visual elements')}
                     className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
-                    More detailed
+                    <ExpandIcon className="w-3.5 h-3.5 inline-block mr-1.5" />Elaborate
                   </button>
                   <button
                     onClick={() => handleImprove('Simplify the image with a cleaner, more minimal design')}
                     className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
-                    Simplify
+                    <ChevronsDownUpIcon className="w-3.5 h-3.5 inline-block mr-1.5" />Clean Up
                   </button>
                 </div>
               </div>
