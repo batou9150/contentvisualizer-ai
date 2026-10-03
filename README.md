@@ -108,4 +108,4 @@ Finally, add the Cloud Run URL to the OAuth client's **Authorized JavaScript ori
 
 ## License
 
-MIT
+MIT, see [LICENSE](LICENSE).
