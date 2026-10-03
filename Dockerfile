@@ -1,34 +1,29 @@
-# Stage 1: Build the frontend, and install server dependencies
-FROM node:22 AS builder
+# syntax=docker/dockerfile:1
 
+# ---- Build the client bundle ----
+FROM node:24-slim AS build
 WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
 
-# Copy all files from the current directory
-COPY . ./
-RUN echo "GEMINI_API_KEY=PLACEHOLDER" >> ./.env
-ARG VITE_GOOGLE_CLIENT_ID
-ARG VITE_GOOGLE_CLIENT_SECRET
-
-# Install server dependencies
-WORKDIR /app/server
-RUN npm install
-
-# Install dependencies and build the frontend
+# ---- Production dependencies only ----
+FROM node:24-slim AS deps
 WORKDIR /app
-RUN mkdir dist
-RUN bash -c 'if [ -f package.json ]; then npm install && npm run build; fi'
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
-
-# Stage 2: Build the final server image
-FROM node:22
-
+# ---- Runtime ----
+FROM node:24-slim
+ENV NODE_ENV=production
 WORKDIR /app
-
-#Copy server files
-COPY --from=builder /app/server .
-# Copy built frontend assets from the builder stage
-COPY --from=builder /app/dist ./dist
-
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY package.json ./
+COPY src/server ./src/server
+COPY src/shared ./src/shared
+# Node 24 runs the TypeScript server directly (type stripping), so there is no server build step.
+USER node
 EXPOSE 3000
-
-CMD ["node", "server.js"]
+CMD ["node", "src/server/index.ts"]

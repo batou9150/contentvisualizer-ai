@@ -1,105 +1,111 @@
 # Content Visualizer AI
 
-**Content Visualizer AI** is a powerful React application that leverages the advanced capabilities of Google's Gemini models to analyze content from various sources and transform it into clear, visual summaries and professional infographics.
-
-Whether you're researching a topic, summarizing a long article, or needing a quick visual for a presentation, this tool streamlines the process by generating executive summaries, structured mindmaps, and high-quality, branded slide visuals.
+Turn a web page, some text, or a PDF/image into an **executive summary**, a **Mermaid mindmap**, and **branded infographic slides**. You can then refine the slides with plain-language edits. Every visual is saved to your Google Drive.
 
 ![Content Visualizer AI](docs/contentvisualizer-ai.jpg)
 
-## 🚀 Features
+## Features
 
-- **Secure Authentication:**
-  - **Google Sign-In:** Securely log in using your Google account to access the application.
-  - **Backend Proxy:** API keys are stored securely on the server, keeping them safe from client-side exposure.
+- **Three inputs:** a URL (read with Gemini URL Context, grounded with Google Search, with sources listed), pasted text, or a PDF/image file up to 20 MB.
+- **Analysis:** structured JSON output (summary, mindmap and title) from `gemini-3.8-flash`.
+- **Editable results:** switch the summary (Markdown) or the mindmap (Mermaid) to code view and edit it before generating visuals.
+- **Slide visuals** with `gemini-3.1-flash-image` (Nano Banana 2):
+  - sizes 512px, 1K, 2K or 4K;
+  - 10 aspect ratios;
+  - built-in visual styles, plus custom ones with **Improve with AI**.
+- **Real image editing:** "Elaborate", "Clean up" or any instruction continues the same Gemini interaction (`previous_interaction_id`). It edits the existing image instead of regenerating it.
+- **Google Drive:** every visual goes to a *Content Visualizer AI* folder. The history drawer shows thumbnails, and delete moves files to the Drive trash.
+- **Theme:** follows the system light or dark setting.
 
-- **Multi-Modal Analysis:**
-  - **URL Analysis:** Paste a link to a blog post or article, and the AI will browse and extract core concepts.
-  - **Text Analysis:** Paste raw text directly for instant summarization.
-  - **File Analysis:** Upload a file (e.g., a screenshot of a document, diagram, or PDF) to extract and visualize its content.
+## Architecture
 
-- **AI-Powered Insights:**
-  - **Executive Summaries:** Get concise, formatted summaries with key takeaways and bolded terms.
-  - **Automatic Mindmaps:** Generates Mermaid.js mindmap code to visualize the structure of the content.
+```
+Browser (React 19 + Vite 8 + Tailwind 4)
+   │  same-origin /api, httpOnly session cookie, no API keys or Google tokens in the browser
+   ▼
+Hono server on Node 24 (TypeScript run directly, no build step)
+   ├─ Google Identity Services code flow → tokens kept in an AES-GCM-encrypted cookie, auto-refreshed
+   ├─ Gemini Interactions API (@google/genai 2.x), server-side only
+   └─ Google Drive REST API with the narrow `drive.file` scope
+```
 
-- **Visual Generation & Branding:**
-  - **Custom Branding Styles:** Define your own visual styles (e.g., "Corporate Dark", "Sketch Note") with custom prompts.
-  - **AI Prompt Improver:** Use Gemini to refine your rough visual descriptions into professional, high-quality image generation prompts.
-  - **Infographic Slides:** Generate beautiful, high-resolution (up to 4K) infographic slides based on your summary or mindmap.
-  - **Downloadable Assets:** Easily download the generated visuals for your presentations.
+| Concern | v1 (previous version) | v2 (this rewrite) |
+|---|---|---|
+| Gemini API key | Proxy open to anyone, key in the dev bundle | Only used server-side, behind sign-in, with a per-user rate limit |
+| Google tokens | `localStorage` (readable by XSS) | Encrypted httpOnly `SameSite=Lax` cookie |
+| Drive scope | `drive` (whole Drive) | `drive.file` (only files the app created) |
+| Gemini API | `generateContent` with preview models | Interactions API with stable `gemini-3.8-flash` and `gemini-3.1-flash-image` |
+| Image "Improve" | Regenerates from scratch | Edits the previous image (`previous_interaction_id`) |
+| Mermaid | `securityLevel: 'loose'` | `'strict'`, lazy-loaded |
+| Markdown | Hand-rolled parser | `react-markdown` + GFM (no raw HTML) |
+| Hardening | – | CSP, CSRF origin + header check, zod-validated inputs and env |
+| Deploy | `gcr.io`, secrets as plain env vars | Artifact Registry, Secret Manager, non-root image |
 
-## 🛠 Tech Stack
+## Local development
 
-- **Frontend:** [React 19](https://react.dev/), [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/)
-- **Backend:** [Node.js](https://nodejs.org/), [Express](https://expressjs.com/)
-- **Authentication:** [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2), [@react-oauth/google](https://www.npmjs.com/package/@react-oauth/google)
-- **AI Integration:** [Google GenAI SDK](https://www.npmjs.com/package/@google/genai)
-- **Diagrams:** [Mermaid.js](https://mermaid.js.org/)
+Prerequisites: Node 24+, plus a Google Cloud project with the **Gemini API** (an AI Studio key) and the **Google Drive API** enabled.
 
-## 📋 Prerequisites
+1. Create an **OAuth client ID** of type *Web application*. Add `http://localhost:5173` to **Authorized JavaScript origins**. No redirect URI is needed; the popup flow uses `postmessage`.
+2. On the OAuth consent screen, add the scopes `openid`, `email`, `profile` and `.../auth/drive.file`.
+3. Configure and run:
 
-- **Node.js** (v18 or higher recommended)
-- **Google Cloud Project** with:
-  - **Generative Language API** enabled.
-  - **OAuth 2.0 Client ID** configured.
+```bash
+cp .env.example .env     # fill in the values; SESSION_SECRET: openssl rand -base64 32
+npm install
+npm run dev              # API on :3000 + Vite on :5173 (proxied)
+```
 
-## ⚙️ Installation & Setup
+Open http://localhost:5173.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/batou9150/contentvisualizer-ai.git
-    cd contentvisualizer-ai
-    ```
+| Script | What it does |
+|---|---|
+| `npm run dev` | API (watch mode) + Vite dev server |
+| `npm run build` | Builds the client into `dist/` |
+| `npm start` | Production server (serves `dist/` and `/api`) |
+| `npm run typecheck` | TypeScript, client and server |
+| `npm test` | Vitest unit tests |
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+## Deploy to Cloud Run
 
-3.  **Configure Environment Variables:**
-    Create a `.env` file in the root directory with the following keys:
-    ```env
-    # Your Google Gemini API Key (Server-side)
-    GEMINI_API_KEY=your_google_api_key_here
+One-time setup:
 
-    # Your Google OAuth Client Credentials
-    VITE_GOOGLE_CLIENT_ID=your_oauth_client_id
-    VITE_GOOGLE_CLIENT_SECRET=your_oauth_client_secret
-    ```
+```bash
+PROJECT_ID=$(gcloud config get-value project)
+REGION=europe-west1
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com drive.googleapis.com generativelanguage.googleapis.com
 
-4.  **Run the application:**
-    This command starts both the backend proxy server (port 3000) and the frontend dev server (port 5173) concurrently.
-    ```bash
-    npm run dev
-    ```
+gcloud artifacts repositories create contentvisualizer --repository-format=docker --location=$REGION
 
-5.  **Open in Browser:**
-    Navigate to `http://localhost:5173`.
+# Runtime service account that can read the secrets
+gcloud iam service-accounts create contentvisualizer-ai
+for s in gemini-api-key google-client-secret session-secret; do
+  gcloud secrets create $s --replication-policy=automatic
+  gcloud secrets add-iam-policy-binding $s \
+    --member=serviceAccount:contentvisualizer-ai@$PROJECT_ID.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor
+done
+printf '%s' "$GEMINI_API_KEY"       | gcloud secrets versions add gemini-api-key --data-file=-
+printf '%s' "$GOOGLE_CLIENT_SECRET" | gcloud secrets versions add google-client-secret --data-file=-
+openssl rand -base64 32 | tr -d '\n' | gcloud secrets versions add session-secret --data-file=-
+```
 
-## 📖 Usage
+The Cloud Build service account also needs `roles/run.admin`, `roles/artifactregistry.writer`, and `roles/iam.serviceAccountUser` on the runtime service account.
 
-1.  **Sign In:** Click "Sign in with Google" to access the application.
-2.  **Select Input Mode:** Choose between **URL**, **Direct Text**, or **From File**.
-3.  **Enter Content:** Paste the URL, text, or upload your image.
-4.  **Analyze:** Click the **Analyze** button.
-    - The AI will generate an Executive Summary and a Mermaid Mindmap.
-5.  **Customize Branding:**
-    - Click the **Branding** dropdown to select a style.
-    - Click **New Branding** or the **Edit** icon to customize the visual style.
-    - Use the **Improve** button to let AI refine your branding prompt.
-6.  **Generate Visuals:**
-    - Click **Generate Slide Visual** on the Summary or Mindmap section to create an infographic.
-    - Select your desired resolution (1K, 2K, 4K).
-    - Download the generated image.
-7.  **Log Out:** Click your profile picture in the header to log out.
+Deploy:
 
-## 🤝 Contributing
+```bash
+gcloud builds submit --config cloudbuild.yaml \
+  --substitutions=_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com,_ALLOWED_USERS=@yourcompany.com
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Finally, add the Cloud Run URL to the OAuth client's **Authorized JavaScript origins**.
 
-## 📄 License
+`ALLOWED_USERS` (optional) restricts sign-in to specific emails or `@domains`. Leave it empty to allow any Google account. The rate limiter is in memory, so it applies per instance; use Redis or Memorystore if you scale out.
 
-This project is licensed under the MIT License.
+## Notes
 
-## Screenshots
+- Image interactions are **stored** by the Gemini API, which is what makes follow-up edits possible. Analysis requests use `store: false`.
+- Text and image models can be overridden with `TEXT_MODEL` and `IMAGE_MODEL`, for example `gemini-3-pro-image` for Nano Banana Pro.
 
-![Screenshot CHIBI](docs/screenshot_chibi.png)
+## License
+
+MIT
