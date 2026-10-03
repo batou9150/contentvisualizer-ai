@@ -37,7 +37,7 @@ steps:
       - --region=${_REGION}
       - --allow-unauthenticated
       - --service-account=${_SERVICE}@${PROJECT_ID}.iam.gserviceaccount.com
-      - --set-secrets=GEMINI_API_KEY=gemini-api-key:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,SESSION_SECRET=session-secret:latest
+      - --set-secrets=GEMINI_API_KEY=contentvisualizer-gemini-api-key:latest,GOOGLE_CLIENT_SECRET=contentvisualizer-google-client-secret:latest,SESSION_SECRET=contentvisualizer-session-secret:latest
       # ^;^ switches gcloud's list delimiter so ALLOWED_USERS may contain commas.
       - --set-env-vars=^;^GOOGLE_CLIENT_ID=${_GOOGLE_CLIENT_ID};ALLOWED_USERS=${_ALLOWED_USERS}
       # Image generation at 4K can take a while.

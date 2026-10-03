@@ -78,14 +78,14 @@ gcloud artifacts repositories create contentvisualizer --repository-format=docke
 
 # Runtime service account that can read the secrets
 gcloud iam service-accounts create contentvisualizer-ai
-for s in gemini-api-key google-client-secret session-secret; do
+for s in contentvisualizer-gemini-api-key contentvisualizer-google-client-secret contentvisualizer-session-secret; do
   gcloud secrets create $s --replication-policy=automatic
   gcloud secrets add-iam-policy-binding $s \
     --member=serviceAccount:contentvisualizer-ai@$PROJECT_ID.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor
 done
-printf '%s' "$GEMINI_API_KEY"       | gcloud secrets versions add gemini-api-key --data-file=-
-printf '%s' "$GOOGLE_CLIENT_SECRET" | gcloud secrets versions add google-client-secret --data-file=-
-openssl rand -base64 32 | tr -d '\n' | gcloud secrets versions add session-secret --data-file=-
+printf '%s' "$GEMINI_API_KEY"       | gcloud secrets versions add contentvisualizer-gemini-api-key --data-file=-
+printf '%s' "$GOOGLE_CLIENT_SECRET" | gcloud secrets versions add contentvisualizer-google-client-secret --data-file=-
+openssl rand -base64 32 | tr -d '\n' | gcloud secrets versions add contentvisualizer-session-secret --data-file=-
 ```
 
 The Cloud Build service account also needs `roles/run.admin`, `roles/artifactregistry.writer`, and `roles/iam.serviceAccountUser` on the runtime service account.
