@@ -2,11 +2,13 @@ import { useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, ImageOff, Loader2, Trash2, X } from 'lucide-react';
 import { api } from '../lib/api.ts';
+import { useAuth } from '../lib/auth.tsx';
 import type { HistoryItem } from '../../shared/schemas.ts';
 
 export function HistoryDrawer({ open, onClose }: { open: boolean; onClose(): void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const queryClient = useQueryClient();
+  const local = useAuth().user?.local;
 
   useEffect(() => {
     if (open) ref.current?.showModal();
@@ -35,7 +37,7 @@ export function HistoryDrawer({ open, onClose }: { open: boolean; onClose(): voi
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
           <div>
             <h2 className="text-lg font-bold">History</h2>
-            <p className="text-xs text-slate-500">Saved in the “Content Visualizer AI” folder of your Drive</p>
+            <p className="text-xs text-slate-500">{local ? 'Saved on this machine (dev login)' : 'Saved in the “Content Visualizer AI” folder of your Drive'}</p>
           </div>
           <button className="btn-ghost" onClick={() => ref.current?.close()} aria-label="Close">
             <X className="size-5" />
@@ -68,8 +70,8 @@ export function HistoryDrawer({ open, onClose }: { open: boolean; onClose(): voi
                   className="absolute top-2 left-2 rounded bg-white/90 p-1 text-red-600 opacity-0 transition group-hover:opacity-100 focus:opacity-100"
                   onClick={() => remove.mutate(item.id)}
                   disabled={remove.isPending && remove.variables === item.id}
-                  aria-label={`Move ${item.name} to Drive trash`}
-                  title="Move to Drive trash"
+                  aria-label={local ? `Delete ${item.name}` : `Move ${item.name} to Drive trash`}
+                  title={local ? 'Delete' : 'Move to Drive trash'}
                 >
                   <Trash2 className="size-4" />
                 </button>

@@ -6,3 +6,4 @@ dist
 .git
 *.log
 **/*.test.ts
+.local-data

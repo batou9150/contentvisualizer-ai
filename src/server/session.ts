@@ -4,18 +4,15 @@ import { HTTPException } from 'hono/http-exception';
 import { OAuth2Client } from 'google-auth-library';
 import { env, isProd } from './env.ts';
 import { createSealer } from './crypto.ts';
+import type { User } from '../shared/schemas.ts';
 
-export interface SessionUser {
-  id: string;
-  name: string;
-  email: string;
-  picture?: string;
-}
+export type SessionUser = User;
 
 /** Everything lives server-side in an encrypted httpOnly cookie; the browser never sees Google tokens. */
 export interface Session {
   user: SessionUser;
   refreshToken?: string;
+  /** Empty for dev-login sessions. */
   accessToken: string;
   /** Epoch ms when accessToken expires. */
   expiresAt: number;
@@ -40,7 +37,7 @@ export function writeSession(c: Context, session: Session) {
     secure: isProd,
     sameSite: 'Lax',
     path: '/',
-    maxAge: session.refreshToken ? MAX_AGE_S : Math.max(0, Math.floor((session.expiresAt - Date.now()) / 1000)),
+    maxAge: session.refreshToken || session.user.local ? MAX_AGE_S : Math.max(0, Math.floor((session.expiresAt - Date.now()) / 1000)),
   });
 }
 
@@ -77,7 +74,7 @@ export const requireAuth: MiddlewareHandler<AppEnv> = async (c, next) => {
   let session = readSession(c);
   if (!session) throw new HTTPException(401, { message: 'Not signed in' });
 
-  if (session.expiresAt - REFRESH_MARGIN_MS < Date.now()) {
+  if (!session.user.local && session.expiresAt - REFRESH_MARGIN_MS < Date.now()) {
     session = await refresh(session);
     if (!session) {
       clearSession(c);

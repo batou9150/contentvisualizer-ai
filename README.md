@@ -43,6 +43,20 @@ Hono server on Node 24 (TypeScript run directly, no build step)
 
 ## Local development
 
+### Quick start (dev login, no OAuth)
+
+Only needs Node 24+ and a Gemini API key from AI Studio:
+
+```bash
+cp .env.example .env     # set GEMINI_API_KEY, SESSION_SECRET (openssl rand -base64 32) and DEV_LOGIN=true
+npm install
+npm run dev
+```
+
+Open http://localhost:5173 and sign in with any name. Visuals are saved to `.local-data/` instead of Google Drive. `DEV_LOGIN` is refused when `NODE_ENV=production`. If the OAuth variables are also set, both sign-in options are shown.
+
+### With Google sign-in and Drive
+
 Prerequisites: Node 24+, plus a Google Cloud project with the **Gemini API** (an AI Studio key) and the **Google Drive API** enabled.
 
 1. Create an **OAuth client ID** of type *Web application*. Add `http://localhost:5173` to **Authorized JavaScript origins**. No redirect URI is needed; the popup flow uses `postmessage`.

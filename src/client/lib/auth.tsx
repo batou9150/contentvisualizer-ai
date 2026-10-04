@@ -48,6 +48,7 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   signIn(): Promise<void>;
+  devSignIn(name: string): Promise<void>;
   signOut(): Promise<void>;
   signInError: string | null;
 }
@@ -115,6 +116,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [queryClient, requestCode]);
 
+  const devSignIn = useCallback(
+    async (name: string) => {
+      setSignInError(null);
+      try {
+        const { user } = await api<{ user: User }>('/auth/dev', { json: { name } });
+        queryClient.setQueryData(['me'], { user });
+      } catch (err) {
+        setSignInError((err as Error).message);
+      }
+    },
+    [queryClient],
+  );
+
   const signOut = useCallback(async () => {
     await api('/auth/logout', { method: 'POST' }).catch(() => {});
     queryClient.clear();
@@ -122,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   return (
-    <AuthContext value={{ user: me.data?.user ?? null, isLoading: me.isPending, signIn, signOut, signInError }}>
+    <AuthContext value={{ user: me.data?.user ?? null, isLoading: me.isPending, signIn, devSignIn, signOut, signInError }}>
       {children}
     </AuthContext>
   );

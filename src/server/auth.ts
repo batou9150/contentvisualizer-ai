@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { env, isUserAllowed } from './env.ts';
+import { env, googleLogin, isUserAllowed } from './env.ts';
 import { clearSession, oauthClient, readSession, writeSession, type AppEnv, type Session } from './session.ts';
 
 /** Only files this app creates are visible to it; no access to the rest of the user's Drive. */
@@ -9,9 +9,10 @@ export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 export const SCOPES = ['openid', 'email', 'profile', DRIVE_SCOPE];
 
 export const auth = new Hono<AppEnv>()
-  .get('/config', (c) => c.json({ clientId: env.GOOGLE_CLIENT_ID, scopes: SCOPES }))
+  .get('/config', (c) => c.json({ clientId: googleLogin ? env.GOOGLE_CLIENT_ID : null, scopes: SCOPES, devLogin: env.DEV_LOGIN }))
 
   .post('/auth/google', async (c) => {
+    if (!googleLogin) throw new HTTPException(404, { message: 'Google sign-in is not configured' });
     const { code } = z.object({ code: z.string().min(1) }).parse(await c.req.json());
     const client = oauthClient();
 
@@ -50,6 +51,20 @@ export const auth = new Hono<AppEnv>()
     return c.json({ user: session.user });
   })
 
+  /** Local development only: sign in as any name, no OAuth client needed. */
+  .post('/auth/dev', async (c) => {
+    if (!env.DEV_LOGIN) throw new HTTPException(404, { message: 'Not found' });
+    const { name } = z.object({ name: z.string().trim().min(1).max(40) }).parse(await c.req.json());
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'dev';
+    const session: Session = {
+      user: { id: `dev-${slug}`, name, email: `${slug}@dev.local`, local: true },
+      accessToken: '',
+      expiresAt: 0,
+    };
+    writeSession(c, session);
+    return c.json({ user: session.user });
+  })
+
   .get('/auth/me', (c) => {
     const session = readSession(c);
     return session ? c.json({ user: session.user }) : c.json({ user: null });
@@ -58,7 +73,7 @@ export const auth = new Hono<AppEnv>()
   .post('/auth/logout', async (c) => {
     const session = readSession(c);
     clearSession(c);
-    if (session?.refreshToken) {
+    if (session?.refreshToken && googleLogin) {
       await oauthClient().revokeToken(session.refreshToken).catch(() => {});
     }
     return c.body(null, 204);

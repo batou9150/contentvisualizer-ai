@@ -84,7 +84,7 @@ app.onError((err, c) => {
 });
 
 const server = serve({ fetch: app.fetch, port: env.PORT }, (info) => {
-  console.log(`Server listening on http://localhost:${info.port}`);
+  console.log(`Server listening on http://localhost:${info.port}${env.DEV_LOGIN ? ` (dev login ON, local visuals in ${env.LOCAL_DATA_DIR})` : ''}`);
 });
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {

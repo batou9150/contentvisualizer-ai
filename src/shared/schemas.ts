@@ -86,4 +86,6 @@ export interface User {
   name: string;
   email: string;
   picture?: string;
+  /** Dev login: no Google account, visuals are saved on the server's disk instead of Drive. */
+  local?: boolean;
 }
