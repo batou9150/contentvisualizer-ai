@@ -2,7 +2,7 @@
 
 Turn a web page, some text, or a PDF/image into an **executive summary**, a **Mermaid mindmap**, and **branded infographic slides**. You can then refine the slides with plain-language edits. Every visual is saved to your Google Drive.
 
-![Content Visualizer AI](docs/contentvisualizer-ai.jpg)
+![Content Visualizer AI: a Wikipedia page on the Solar System turned into an executive summary and a Chibi-style slide visual](docs/contentvisualizer-ai.jpg)
 
 ## Features
 
